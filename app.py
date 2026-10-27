@@ -139,7 +139,7 @@ def predict_image(image):
 
     # Convert confidence to percentage
     confidence_percentage = (
-        confidence.item() * 100
+        confidence.item()
     )
 
     return (
