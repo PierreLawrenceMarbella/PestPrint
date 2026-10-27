@@ -14,11 +14,20 @@ A rice crop image analysis system. Upload a crop photo to see the model’s pred
 The application source code is included in the GitHub repository. These additional files are not:
 
 ```text
-model/efficientnet_b0_rice_pest.pth  Required for image analysis
-dataset/                             Required only for training or evaluation
+PestPrint/
+├── model/
+│   └── efficientnet_b0_rice_pest.pth   Required to run image analysis
+└── dataset/                           Required only to train or evaluate
+    ├── training/
+    │   ├── healthy/
+    │   ├── leaffolder/
+    │   ├── stemborer/
+    │   └── unknown/
+    ├── validation/                    Same four class folders
+    └── testing/                       Same four class folders
 ```
 
-Get the trained `.pth` file from your group and place it in the `model` folder. If you do not have it, train the model using the instructions below. You only need the dataset if you plan to train or evaluate the model.
+Get the trained `.pth` file and dataset from your group’s shared storage. Place them in the folders shown above. If you do not have the model file, train it using the instructions below. Do not commit the model or dataset to GitHub; they are excluded from the repository because of their size.
 
 ## First-Time Setup (Run Once)
 
