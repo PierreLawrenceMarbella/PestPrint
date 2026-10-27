@@ -9,7 +9,16 @@ A rice crop image analysis system. Upload a crop photo to see the model’s pred
 - Node.js 22.12 or newer
 - The trained model file `efficientnet_b0_rice_pest.pth`, saved inside the project’s `model` folder
 
-> The trained model file is required for image analysis and is not included in Git. Get it from your group and place it at `model/efficientnet_b0_rice_pest.pth`.
+## Required Project Files
+
+The application source code is included in the GitHub repository. These additional files are not:
+
+```text
+model/efficientnet_b0_rice_pest.pth  Required for image analysis
+dataset/                             Required only for training or evaluation
+```
+
+Get the trained `.pth` file from your group and place it in the `model` folder. If you do not have it, train the model using the instructions below. You only need the dataset if you plan to train or evaluate the model.
 
 ## First-Time Setup (Run Once)
 
