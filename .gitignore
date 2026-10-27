@@ -27,3 +27,11 @@ model/*.pkl
 # OS files
 .DS_Store
 Thumbs.db
+
+# Frontend dependencies, generated output, and test artifacts
+frontend/node_modules/
+static/app/
+frontend/test-results/
+frontend/playwright-report/
+*.tsbuildinfo
+.artifacts/

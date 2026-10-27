@@ -1,225 +1,88 @@
-import torch
+﻿"""PESTPRINT web application and image-classification API."""
+import io
+import logging
+from pathlib import Path
 
-from flask import Flask, render_template, request
-from PIL import Image
+from flask import Flask, jsonify, request, send_from_directory
+from PIL import Image, ImageOps, UnidentifiedImageError
+from werkzeug.exceptions import RequestEntityTooLarge
 
-from torchvision import transforms
-from torchvision.models import efficientnet_b0
+from inference import RiceClassifier
 
-
-# --------------------------------------------------
-# 1. Create Flask application
-# --------------------------------------------------
-
+ROOT = Path(__file__).resolve().parent
+MAX_IMAGE_BYTES = 10 * 1024 * 1024
+MAX_IMAGE_PIXELS = 25_000_000
 app = Flask(__name__)
+app.config['MAX_CONTENT_LENGTH'] = MAX_IMAGE_BYTES + 1024 * 1024
+classifier = RiceClassifier(ROOT / 'model' / 'efficientnet_b0_rice_pest.pth')
 
 
-# --------------------------------------------------
-# 2. Select device
-# --------------------------------------------------
-
-device = torch.device(
-    "cuda" if torch.cuda.is_available() else "cpu"
-)
-
-print("Using device:", device)
-
-if torch.cuda.is_available():
-    print(
-        "GPU:",
-        torch.cuda.get_device_name(0)
+@app.get('/api/health')
+def health():
+    return jsonify(
+        available=classifier.available,
+        classes=list(classifier.classes),
+        message='Model ready' if classifier.available else
+        'Analysis is unavailable because the trained model could not be loaded. You can still explore the pest guide.',
     )
 
 
-# --------------------------------------------------
-# 3. Define classes
-# --------------------------------------------------
-
-classes = [
-    "healthy_rice",
-    "rice_leaffolder",
-    "rice_stem_borer",
-    "unknown"
-]
-
-num_classes = len(classes)
-
-
-# --------------------------------------------------
-# 4. Original image preprocessing
-# --------------------------------------------------
-
-transform = transforms.Compose([
-    transforms.Resize((224, 224)),
-    transforms.ToTensor()
-])
-
-
-# --------------------------------------------------
-# 5. Create EfficientNet-B0
-# --------------------------------------------------
-
-model = efficientnet_b0(
-    weights=None
-)
+@app.post('/api/analyze')
+def analyze():
+    file = request.files.get('image')
+    if file is None or not file.filename:
+        return jsonify(error='Please choose a JPG or PNG image.'), 400
+    if Path(file.filename).suffix.lower() not in {'.jpg', '.jpeg', '.png'}:
+        return jsonify(error='Unsupported format. Please choose a JPG, JPEG, or PNG image.'), 400
+    raw = file.read(MAX_IMAGE_BYTES + 1)
+    if len(raw) > MAX_IMAGE_BYTES:
+        return jsonify(error='This image is too large. Choose an image under 10 MB.'), 413
+    try:
+        with Image.open(io.BytesIO(raw)) as candidate:
+            if candidate.format not in {'JPEG', 'PNG'}:
+                return jsonify(error='The file contents must be a genuine JPG or PNG image.'), 400
+            if candidate.width * candidate.height > MAX_IMAGE_PIXELS:
+                return jsonify(error='Image resolution is too large. Use an image under 25 megapixels.'), 400
+            candidate.verify()
+        with Image.open(io.BytesIO(raw)) as source:
+            image = ImageOps.exif_transpose(source).convert('RGB')
+    except (UnidentifiedImageError, OSError, ValueError, SyntaxError, Image.DecompressionBombError):
+        return jsonify(error='This image could not be read. Please choose a different JPG or PNG.'), 400
+    if not classifier.available:
+        return jsonify(error='The trained model is unavailable. Please try again after the model is connected.'), 503
+    try:
+        return jsonify(classifier.predict(image))
+    except Exception:
+        app.logger.exception('Image analysis failed')
+        return jsonify(error='Analysis could not be completed. Please try again.'), 500
 
 
-# --------------------------------------------------
-# 6. Replace classifier
-# --------------------------------------------------
-
-input_features = (
-    model.classifier[1].in_features
-)
-
-model.classifier[1] = torch.nn.Linear(
-    input_features,
-    num_classes
-)
+@app.errorhandler(RequestEntityTooLarge)
+def too_large(_error):
+    return jsonify(error='This upload is too large. Choose an image under 10 MB.'), 413
 
 
-# --------------------------------------------------
-# 7. Load trained model
-# --------------------------------------------------
-
-model.load_state_dict(
-    torch.load(
-        "model/efficientnet_b0_rice_pest.pth",
-        map_location=device
-    )
-)
+@app.after_request
+def response_headers(response):
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+    if request.path.startswith('/api/'):
+        response.headers['Cache-Control'] = 'no-store'
+    return response
 
 
-# --------------------------------------------------
-# 8. Move model to device
-# --------------------------------------------------
-
-model = model.to(device)
-
-model.eval()
-
-print("Model loaded successfully.")
-
-
-# --------------------------------------------------
-# 9. Prediction function
-# --------------------------------------------------
-
-def predict_image(image):
-
-    # Apply the same preprocessing used by
-    # the original model
-    image_tensor = transform(image)
-
-    # Add batch dimension
-    image_tensor = image_tensor.unsqueeze(0)
-
-    # Move image to GPU/CPU
-    image_tensor = image_tensor.to(device)
-
-    # Make prediction
-    with torch.no_grad():
-
-        outputs = model(image_tensor)
-
-        probabilities = torch.softmax(
-            outputs,
-            dim=1
-        )
-
-        confidence, predicted_index = torch.max(
-            probabilities,
-            dim=1
-        )
-
-    # Get predicted class
-    predicted_class = classes[
-        predicted_index.item()
-    ]
-
-    # Convert confidence to percentage
-    confidence_percentage = (
-        confidence.item()
-    )
-
-    return (
-        predicted_class,
-        confidence_percentage
-    )
+@app.get('/')
+@app.get('/analyze')
+@app.get('/pest-guide')
+@app.get('/pest-guide/<slug>')
+@app.get('/about')
+def frontend(slug=None):
+    if not (ROOT / 'static' / 'app' / 'index.html').exists():
+        return ("PESTPRINT frontend has not been built. Run 'npm install' and "
+                "'npm run build' in the frontend folder, then refresh this page.", 503)
+    return send_from_directory(ROOT / 'static' / 'app', 'index.html')
 
 
-# --------------------------------------------------
-# 10. Home page
-# --------------------------------------------------
-
-@app.route("/", methods=["GET", "POST"])
-def index():
-
-    prediction = None
-    confidence = None
-    error = None
-
-    if request.method == "POST":
-
-        # Check whether an image was uploaded
-        if "image" not in request.files:
-
-            error = "Please select an image."
-
-            return render_template(
-                "index.html",
-                prediction=prediction,
-                confidence=confidence,
-                error=error
-            )
-
-        file = request.files["image"]
-
-        # Check whether a file was selected
-        if file.filename == "":
-
-            error = "Please select an image."
-
-            return render_template(
-                "index.html",
-                prediction=prediction,
-                confidence=confidence,
-                error=error
-            )
-
-        try:
-
-            # Open uploaded image
-            image = Image.open(
-                file
-            ).convert("RGB")
-
-            # Predict
-            prediction, confidence = (
-                predict_image(image)
-            )
-
-        except Exception as e:
-
-            error = (
-                "Unable to process the image: "
-                + str(e)
-            )
-
-    return render_template(
-        "index.html",
-        prediction=prediction,
-        confidence=confidence,
-        error=error
-    )
-
-
-# --------------------------------------------------
-# 11. Run application
-# --------------------------------------------------
-
-if __name__ == "__main__":
-
-    app.run(
-        debug=True
-    )
+if __name__ == '__main__':
+    logging.basicConfig(level=logging.INFO)
+    app.run(host='127.0.0.1', port=5000, debug=False)

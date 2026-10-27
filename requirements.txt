@@ -4,3 +4,5 @@ opencv-python
 numpy
 scikit-learn
 matplotlib
+Flask>=3.0,<4
+Pillow>=10.0

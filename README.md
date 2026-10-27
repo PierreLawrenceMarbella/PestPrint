@@ -1,294 +1,62 @@
-# PestPrint
+﻿# PESTPRINT
 
-## Rice Crop Damage Identification System
+A rice crop image analysis system. Upload a crop photo to see the model’s prediction and confidence score.
 
-PestPrint is an image classification prototype designed to identify rice crop damage signatures using a deep learning model.
+## Requirements
 
-The system accepts an image of a rice plant and predicts one of the following categories:
+- Windows PowerShell
+- Python 3.11
+- Node.js 22.12 or newer
+- The trained model file `efficientnet_b0_rice_pest.pth`, saved inside the project’s `model` folder
 
-- **Healthy Rice**
-- **Rice Leaffolder**
-- **Rice Stem Borer**
-- **Unknown**
+> The trained model file is required for image analysis and is not included in Git. Get it from your group and place it at `model/efficientnet_b0_rice_pest.pth`.
 
-The system uses **EfficientNet-B0** with transfer learning and a Flask-based web application.
+## First-Time Setup (Run Once)
 
----
+Run these steps after downloading or cloning the project to a new computer. Open PowerShell in the **PestPrint** project folder, then copy and run the commands below. You only need to do this once on that computer.
 
-## Features
-
-- Upload a rice plant image through the web interface
-- Preview the selected image
-- Analyze the image using the trained EfficientNet-B0 model
-- Display the predicted class
-- Display the model's confidence level
-- Handle images that do not clearly belong to the target classes
-- Responsive web interface
-
----
-
-## Technologies Used
-
-### Machine Learning
-- Python
-- PyTorch
-- Torchvision
-- EfficientNet-B0
-
-### Backend
-- Flask
-
-### Image Processing
-- Pillow
-
-### Frontend
-- HTML
-- CSS
-- JavaScript
-- Bootstrap
-
----
-
-## Project Structure
-
-PestPrint/
-│
-├── dataset/
-│   ├── training/
-│   ├── validation/
-│   └── testing/
-│
-├── model/
-│   └── efficientnet_b0_rice_pest.pth
-│
-├── static/
-│   └── style.css
-│
-├── templates/
-│   └── index.html
-│
-├── app.py
-├── train.py
-├── test.py
-├── requirements.txt
-├── .gitignore
-└── README.md
-
-
----
-
-# Installation
-
-## 1. Clone the Repository
-
-Open a terminal and run:
-
-git clone <YOUR_GITHUB_REPOSITORY_URL>
-
-
-Then enter the project folder:
-
-cd PestPrint
-
-
----
-
-## 2. Create a Virtual Environment
-
-Create a Python virtual environment:
-
+```powershell
+# Create a Python environment for this project
 python -m venv .venv
 
+# Install the Python packages
+.venv\Scripts\python.exe -m pip install -r requirements.txt
 
-### Windows PowerShell
+# Install the website packages and prepare the website
+cd frontend
+npm.cmd install
+npm.cmd run build
+cd ..
+```
 
-Activate the environment:
+Do not repeat these steps every time you open the website. If you have already set up the project and `.venv` on this computer, go straight to **Start the System**.
 
-.venv\Scripts\Activate.ps1
+## Train the Model (If Needed)
 
+Training requires a dataset with `training`, `validation`, and `testing` folders. Each folder must contain `healthy`, `leaffolder`, `stemborer`, and `unknown` subfolders. After setup, run this from the project folder:
 
-If PowerShell prevents the activation script from running, use Command Prompt instead:
+```powershell
+.venv\Scripts\python.exe train.py
+```
 
-.venv\Scripts\activate
+This saves the trained model to `model/efficientnet_b0_rice_pest.pth`. The first run may need internet to download pretrained weights. Skip training if your group already gave you the `.pth` file.
 
+## Evaluate the Model
 
-After activation, the terminal should show something similar to:
+After training, evaluate the saved model with the testing dataset:
 
-(.venv) PS C:\...\PestPrint>
+```powershell
+.venv\Scripts\python.exe test.py
+```
 
+This displays the model's test results. It requires the trained `.pth` file and `dataset/testing/`.
 
----
+## Start the System
 
-## 3. Install Dependencies
+From the project folder, run:
 
-Install the required Python packages:
+```powershell
+.venv\Scripts\python.exe app.py
+```
 
-pip install -r requirements.txt
-
-
-The project requires:
-
-- PyTorch
-- Torchvision
-- Flask
-- Pillow
-
----
-
-## 4. PyTorch GPU Installation
-
-If you have an NVIDIA GPU and want to use CUDA acceleration, install the appropriate PyTorch CUDA version.
-
-For the current development environment, the project has been tested with the CUDA 12.6 PyTorch installation:
-
-python -m pip install torch torchvision --index-url https://download.pytorch.org/whl/cu126
-
-
-Then install the remaining dependencies:
-
-pip install Flask Pillow
-
-
-To check whether PyTorch can detect the GPU:
-
-python -c "import torch; print(torch.cuda.is_available())"
-
-If the output is:
-
-True
-
-
-CUDA is available.
-
-If it outputs:
-
-False
-
-
-the project can still run using the CPU.
-
----
-
-# Required Project Files
-
-The GitHub repository does not contain the dataset or trained model because these files can be large.
-
-Before running the application, make sure you have the following:
-
-dataset/
-model/efficientnet_b0_rice_pest.pth
-
-
-The dataset should follow this structure:
-
-dataset/
-├── training/
-│   ├── healthy_rice/
-│   ├── rice_leaffolder/
-│   ├── rice_stem_borer/
-│   └── unknown/
-│
-├── validation/
-│   ├── healthy_rice/
-│   ├── rice_leaffolder/
-│   ├── rice_stem_borer/
-│   └── unknown/
-│
-└── testing/
-    ├── healthy_rice/
-    ├── rice_leaffolder/
-    ├── rice_stem_borer/
-    └── unknown/
-
-
-The trained model should be placed at:
-
-model/efficientnet_b0_rice_pest.pth
-
-
-### Obtaining the Dataset and Model
-
-Team members should obtain the dataset and trained model from the team's shared storage.
-
-**Do not commit the dataset or `.pth` model to GitHub unless the team decides to use Git LFS or another appropriate storage method.**
-
----
-
-# Running the Web Application
-
-After installing the dependencies and placing the required model file in the correct location, run:
-
-python app.py
-
-
-The Flask server should start.
-
-Open the following address in your browser:
-
-http://127.0.0.1:5000
-
-
-The PestPrint web application should then be available.
-
----
-
-# Using the Application
-
-1. Open the PestPrint website.
-2. Click **Choose Image**.
-3. Select an image of a rice plant.
-4. Preview the selected image.
-5. Click **Analyze Image**.
-6. Wait for the model to process the image.
-7. View the predicted class and confidence level.
-
-Possible predictions:
-
-| Class | Description |
-|---|---|
-| `healthy_rice` | Rice plants without visible relevant damage |
-| `rice_leaffolder` | Damage associated with rice leaffolder |
-| `rice_stem_borer` | Damage associated with rice stem borer |
-| `unknown` | Images that do not clearly belong to the target classes |
-
----
-
-# Model
-
-PestPrint uses **EfficientNet-B0** through Torchvision.
-
-The model is configured for four output classes:
-
-healthy_rice
-rice_leaffolder
-rice_stem_borer
-unknown
-
-The current application uses the original preprocessing pipeline:
-
-transforms.Compose([
-    transforms.Resize((224, 224)),
-    transforms.ToTensor(),
-])
-
-
-No additional background-removal or segmentation preprocessing is required by the current application.
-
----
-
-# Training the Model
-
-To train the model:
-
-python train.py
-
-
-The trained model is saved as:
-
-model/efficientnet_b0_rice_pest.pth
-
-
-To evaluate the trained model:
-
-python test.py
-
+Open **http://127.0.0.1:5000** in your browser. Press **Ctrl+C** in PowerShell to stop the system.
