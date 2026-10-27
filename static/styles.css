@@ -1,0 +1,46 @@
+body {
+    background-color: #f4f7f4;
+}
+
+main {
+    padding-top: 50px;
+    padding-bottom: 50px;
+}
+
+.card {
+    border: none;
+    border-radius: 15px;
+}
+
+.card-title {
+    margin-bottom: 15px;
+}
+
+#preview-container {
+    display: none;
+}
+
+#preview {
+    max-width: 100%;
+    max-height: 300px;
+    border-radius: 10px;
+    object-fit: contain;
+}
+
+.result-card {
+    padding: 25px;
+    border-radius: 12px;
+    background-color: #f0f8f0;
+}
+
+.prediction {
+    font-size: 28px;
+    font-weight: bold;
+    margin-top: 10px;
+    text-transform: capitalize;
+}
+
+.confidence {
+    font-size: 18px;
+    margin-top: 10px;
+}
