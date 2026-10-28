@@ -2,6 +2,8 @@
 
 A rice crop image analysis system. Upload a crop photo to see the model’s prediction and confidence score.
 
+The AI predicts Healthy Rice, Rice Leaffolder Damage, Stem Borer Damage, or Unknown (Other Damage). Brown Planthopper appears in the guide, but is not predicted by the current model.
+
 ## Requirements
 
 - Windows PowerShell

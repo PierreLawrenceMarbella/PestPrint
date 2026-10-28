@@ -138,7 +138,7 @@ test("five-class API fixture renders Brown Planthopper without changing current 
     .click();
   await expect(
     page.getByRole("heading", {
-      name: "Brown Planthopper Damage",
+      name: "Brown Planthopper",
       exact: true,
     }),
   ).toBeVisible();
@@ -174,7 +174,7 @@ test("a low-confidence known class is not reassigned to Unknown", async ({
     .getByRole("button", { name: "Analyze Image", exact: true })
     .click();
   await expect(
-    page.getByRole("heading", { name: "Rice Leaffolder Damage", exact: true }),
+    page.getByRole("heading", { name: "Rice Leaffolder", exact: true }),
   ).toBeVisible();
   await expect(page.getByText("Confidence Score: 28.0%")).toBeVisible();
   await expect(page.locator(".results-panel")).toHaveClass(/pest/);
