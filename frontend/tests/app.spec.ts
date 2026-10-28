@@ -28,14 +28,9 @@ test("home, education navigation, assets, and mobile layout", async ({
   await page.screenshot({ path: "../.artifacts/guide-desktop.png", fullPage: true });
   await page.getByRole("link", { name: "View Details" }).first().click();
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
-    "Brown Planthopper",
+    "Stem Borer",
   );
-  await expect(
-    page.getByText(
-      "current PESTPRINT model does not predict Brown Planthopper",
-      { exact: false },
-    ),
-  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Typical damage characteristics" })).toBeVisible();
   await page.setViewportSize({ width: 390, height: 844 });
   for (const url of [
     "/",

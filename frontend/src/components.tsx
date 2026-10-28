@@ -151,9 +151,6 @@ export function PestGuideCard({
       <div className="guide-card-content">
         <h2>
           {entry.name}
-          {entry.slug === "brown-planthopper" && (
-            <span className="bph"> (BPH)</span>
-          )}
         </h2>
         <p>{entry.summary}</p>
       </div>

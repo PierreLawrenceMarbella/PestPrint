@@ -95,14 +95,6 @@ export function PestGuide() {
           <PestGuideCard key={entry.slug} entry={entry} />
         ))}
       </div>
-      <div className="notice">
-        <Info size={20} />
-        <p>
-          Brown Planthopper is included for education. The current model
-          supports Healthy Rice, Rice Leaffolder Damage, Stem Borer Damage, and
-          Unknown (Other Damage).
-        </p>
-      </div>
     </div>
   );
 }
@@ -228,8 +220,8 @@ export function About() {
           <ul className="check-list">
             {[
               "Healthy Rice",
-              "Rice Leaffolder Damage",
               "Stem Borer Damage",
+              "Rice Leaffolder Damage",
               "Unknown (Other Damage)",
             ].map((name) => (
               <li key={name}>
@@ -238,11 +230,6 @@ export function About() {
               </li>
             ))}
           </ul>
-          <p className="small">
-            Brown Planthopper is part of the educational guide and planned
-            project scope, but is not a prediction category in the current
-            model.
-          </p>
         </section>
         <section className="panel">
           <ShieldCheck size={25} />
