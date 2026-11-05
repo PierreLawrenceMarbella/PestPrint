@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   ArrowRight,
@@ -113,7 +113,7 @@ export function CameraCapture({
       <div className="camera-title">
         <h2 id="camera-title">Capture your rice crop</h2>
         <button
-          className="icon-button"
+          className="icon-button upload-control"
           onClick={onClose}
           aria-label="Close camera"
           autoFocus
@@ -136,11 +136,11 @@ export function CameraCapture({
         </div>
       )}
       <div className="camera-actions">
-        <button className="button secondary" onClick={onClose}>
+        <button className="button secondary upload-control motion-hover" onClick={onClose}>
           Cancel
         </button>
         <button
-          className="button"
+          className="button upload-control motion-hover"
           disabled={!ready || !!error}
           onClick={capture}
         >
@@ -275,11 +275,59 @@ export function Analyze() {
   const [statusError, setStatusError] = useState("");
   const input = useRef<HTMLInputElement>(null);
   const cameraInput = useRef<HTMLInputElement>(null);
+  const chooseButton = useRef<HTMLButtonElement>(null);
+  const previewHeading = useRef<HTMLSpanElement>(null);
+  const restoreChooseFocus = useRef(false);
   const request = useRef<AbortController | null>(null);
   const selection = useRef(0);
   const depth = useRef(0);
   const alive = useRef(true);
   const locked = busy || validating;
+  const resetDrag = useCallback(() => {
+    depth.current = 0;
+    setDragging(false);
+  }, []);
+  useEffect(() => {
+    const escape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") resetDrag();
+    };
+    const leaveWindow = (event: DragEvent) => {
+      if (!event.relatedTarget && (
+        event.clientX <= 0 || event.clientY <= 0 ||
+        event.clientX >= innerWidth || event.clientY >= innerHeight
+      )) resetDrag();
+    };
+    const outside = (event: DragEvent) => {
+      if (!(event.target instanceof Element) || !event.target.closest(".dropzone"))
+        resetDrag();
+    };
+    const hidden = () => {
+      if (document.hidden) resetDrag();
+    };
+    window.addEventListener("dragend", resetDrag);
+    window.addEventListener("drop", resetDrag);
+    window.addEventListener("blur", resetDrag);
+    window.addEventListener("dragleave", leaveWindow);
+    window.addEventListener("dragover", outside);
+    window.addEventListener("keydown", escape);
+    document.addEventListener("visibilitychange", hidden);
+    return () => {
+      window.removeEventListener("dragend", resetDrag);
+      window.removeEventListener("drop", resetDrag);
+      window.removeEventListener("blur", resetDrag);
+      window.removeEventListener("dragleave", leaveWindow);
+      window.removeEventListener("dragover", outside);
+      window.removeEventListener("keydown", escape);
+      document.removeEventListener("visibilitychange", hidden);
+    };
+  }, [resetDrag]);
+  useEffect(() => {
+    if (preview) previewHeading.current?.focus();
+    else if (restoreChooseFocus.current) {
+      restoreChooseFocus.current = false;
+      chooseButton.current?.focus();
+    }
+  }, [preview]);
   useEffect(() => {
     alive.current = true;
     let disposed = false;
@@ -318,6 +366,7 @@ export function Analyze() {
   );
   async function chooseFile(next: File | undefined) {
     if (!next || request.current) return;
+    resetDrag();
     const token = ++selection.current;
     setError("");
     if (
@@ -365,6 +414,8 @@ export function Analyze() {
     }
   }
   function clear() {
+    resetDrag();
+    restoreChooseFocus.current = true;
     selection.current++;
     setValidating(false);
     setFile(null);
@@ -474,22 +525,26 @@ export function Analyze() {
             {!file ? (
               <>
                 <div
-                  className={`dropzone ${dragging ? "dragging" : ""}`}
+                  className={`dropzone motion-transition ${dragging ? "dragging" : ""}`}
                   onDragEnter={(e) => {
                     e.preventDefault();
-                    depth.current++;
-                    if (!locked) setDragging(true);
+                    if (!locked && e.dataTransfer.types.includes("Files")) {
+                      depth.current++;
+                      setDragging(true);
+                    }
                   }}
-                  onDragOver={(e) => e.preventDefault()}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = !locked && e.dataTransfer.types.includes("Files") ? "copy" : "none";
+                  }}
                   onDragLeave={(e) => {
                     e.preventDefault();
-                    depth.current--;
-                    if (depth.current === 0) setDragging(false);
+                    depth.current = Math.max(0, depth.current - 1);
+                    if (depth.current === 0) resetDrag();
                   }}
                   onDrop={(e) => {
                     e.preventDefault();
-                    depth.current = 0;
-                    setDragging(false);
+                    resetDrag();
                     if (!locked) {
                       if (e.dataTransfer.files.length > 1)
                         setError("Please choose one image at a time.");
@@ -497,14 +552,14 @@ export function Analyze() {
                     }
                   }}
                 >
-                  <span className="upload-cloud">
+                  <span className="upload-cloud motion-transition" aria-hidden="true">
                     {validating ? (
                       <LoaderCircle className="spin" size={44} />
                     ) : (
                       <CloudUpload size={49} strokeWidth={1.6} />
                     )}
                   </span>
-                  <h2>
+                  <h2 aria-live="polite" aria-atomic="true">
                     {dragging
                       ? "Drop your crop image here"
                       : validating
@@ -513,13 +568,14 @@ export function Analyze() {
                   </h2>
                   <p>or</p>
                   <button
-                    className="button"
+                    ref={chooseButton}
+                    className="button upload-control motion-hover"
                     disabled={locked}
                     onClick={() => input.current?.click()}
                   >
                     <ImageIcon size={19} /> Choose Image
                   </button>
-                  <button className="button capture-button" disabled={locked} onClick={openCamera}>
+                  <button className="button capture-button upload-control motion-hover" disabled={locked} onClick={openCamera}>
                     <Camera size={19} /> Capture Image
                   </button>
                   <p className="format-note">Supported formats: JPG, PNG (Max 10MB)</p>
@@ -528,11 +584,11 @@ export function Analyze() {
             ) : (
               <div className="preview-section">
                 <div className="preview-heading">
-                  <span>
+                  <span ref={previewHeading} tabIndex={-1} className="preview-ready motion-fade-in">
                     <Check size={17} /> Your image is ready
                   </span>
                   <button
-                    className="icon-button"
+                    className="icon-button upload-control motion-fade-in"
                     disabled={locked}
                     aria-label="Remove image"
                     onClick={clear}
@@ -540,7 +596,7 @@ export function Analyze() {
                     <X size={20} />
                   </button>
                 </div>
-                <div className={`image-preview ${busy ? "is-analyzing" : ""}`}>
+                <div key={preview} className={`image-preview motion-scale ${busy ? "is-analyzing" : ""}`}>
                   <img src={preview} alt="Selected rice crop preview" />
                   {busy && (
                     <div className="analysis-overlay">
@@ -550,7 +606,7 @@ export function Analyze() {
                     </div>
                   )}
                 </div>
-                <div className="preview-meta">
+                <div className="preview-meta motion-fade-in">
                   <div>
                     <strong>{file.name}</strong>
                     <span>
@@ -559,7 +615,7 @@ export function Analyze() {
                     </span>
                   </div>
                   <button
-                    className="text-link"
+                    className="text-link upload-control"
                     disabled={locked}
                     onClick={() => input.current?.click()}
                   >
@@ -567,7 +623,7 @@ export function Analyze() {
                   </button>
                 </div>
                 <button
-                  className="button analyze-button"
+                  className="button analyze-button upload-control motion-fade-in motion-hover"
                   disabled={locked || status?.available === false}
                   onClick={() => void analyze()}
                 >
@@ -577,10 +633,10 @@ export function Analyze() {
                     <ScanLine size={20} />
                   )}
                   {busy ? "Analyzing Image…" : "Analyze Image"}
-                  {!busy && <ArrowRight size={20} />}
+                  {!busy && <ArrowRight size={20} className="upload-arrow motion-transition-transform" aria-hidden="true" />}
                 </button>
                 <div className="sr-only" role="status">
-                  {busy ? "Analysis in progress. Please wait." : ""}
+                  {busy ? "Analysis in progress. Please wait." : `Image ready: ${file.name}`}
                 </div>
               </div>
             )}

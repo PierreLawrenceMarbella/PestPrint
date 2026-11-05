@@ -125,3 +125,41 @@ touch emulation, keyboard focus, rapid menu reversals, breakpoint changes,
 reduced motion, navigation and the Phase 2 slideshow. Saved layout and typography
 measurements matched before and after at 320, 390, 600, 768 and 1440px, with About
 card and button measurements also unchanged. Screenshots were visually reviewed.
+
+## Phase 4: Analyze upload interactions
+
+- The existing drop zone uses the shared interaction transitions for its forest
+  green border and tinted background. Its icon lifts 3px while a file is over
+  the zone, and the active instruction is announced politely. Text drags do not
+  activate the file state. Nested drag events retain their depth counter;
+  leaving, Escape, drag end, outside drops, window blur and hidden tabs clear it.
+  Global listeners are removed when Analyze unmounts.
+- Decoded previews use `motion-scale` for the fade and 0.98 settling scale.
+  Replacing an image remounts only the preview surface so its entrance replays.
+  Existing image actions fade in with the shared reveal and stagger timing.
+  The ready label receives focus after selection; removing returns focus to
+  Choose Image. A canceled or invalid replacement preserves the valid preview.
+- Upload and camera controls use the existing hover utility, soft shadows,
+  visible keyboard focus and pressed feedback. Disabled controls retain their
+  locks during validation and analysis. Supported class images have a restrained
+  hover zoom and shadow without changing card dimensions or links.
+- Motion transforms are gated by reduced-motion preferences; hover movement is
+  also restricted to fine pointers. The shared policy removes reveal animations
+  immediately. No new dependencies, motion utilities or timers were introduced.
+
+Verification: TypeScript and the production build passed (`npm run build`).
+All 10 selected browser tests passed: seven in `tests/upload.spec.ts` plus the
+existing drag/replacement, camera permission failure and camera capture tests.
+Coverage includes native file chooser events, canceled replacement, removal and
+reselection, nested/canceled drags, validation failures, analysis error recovery
+and disabled actions, keyboard focus, the four guide links, reduced motion and
+touch input. Layout and typography measurements for empty and preview states
+matched the saved baseline at 320, 390, 600, 768 and 1440px with no horizontal
+overflow. Desktop and mobile screenshots were visually reviewed.
+
+Browser checks used Microsoft Edge. Desktop camera capture used a simulated
+canvas video stream and verified stream cleanup; mobile testing exercised the
+native `capture="environment"` input with an image fixture. Physical camera
+hardware and native mobile camera applications were not tested. Model status
+and analysis error responses in the new tests are fixtures; AI inference was
+not changed or retested in this phase.
