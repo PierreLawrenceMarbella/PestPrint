@@ -105,8 +105,8 @@ export function Hero() {
           <p className="hero-description motion-fade-up" style={staggerStyle(1)}>
             An AI-powered tool that analyzes visible damage on rice crops and identifies the most likely pest responsible, even when the pest itself is not visible.
           </p>
-          <Link to="/analyze" className="button hero-button motion-fade-up" style={staggerStyle(2)}>
-            Analyze a Rice Crop Image <ArrowRight size={19} />
+          <Link to="/analyze" className="button hero-button home-action motion-fade-up motion-hover" style={staggerStyle(2)}>
+            Analyze a Rice Crop Image <ArrowRight className="button-arrow motion-transition" size={19} aria-hidden="true" />
           </Link>
         </div>
         <div className="scan-visual motion-scale" style={staggerStyle(3)} aria-hidden="true">

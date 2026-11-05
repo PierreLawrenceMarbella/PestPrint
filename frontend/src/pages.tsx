@@ -20,7 +20,7 @@ export function Home() {
   return (
     <div className="home-page">
       <Hero />
-      <section className="how-section" aria-label="How PESTPRINT works"><HowItWorks /></section>
+      <section className="how-section" aria-label="How PESTPRINT works"><HowItWorks animated /></section>
     </div>
   );
 }

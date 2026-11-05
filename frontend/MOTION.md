@@ -97,4 +97,31 @@ No additional animation implementation or runtime fixes were needed.
 
 Browser checks used Microsoft Edge with emulated viewport sizes; physical mobile
 devices were not tested. Slow images intentionally keep the current frame past
-six seconds until the next image is decoded. Phase 3 has not started.
+six seconds until the next image is decoded.
+
+## Phase 3: navigation and Home interactions
+
+- Navigation links reveal their underline with a transform transition and use
+  subtle green highlights. Keyboard focus keeps a visible outline.
+- The mobile menu fades and moves 8px as a single panel. Closed links are inert
+  and hidden from assistive technology immediately, including during the exit.
+  Escape restores focus to the toggle. Navigation, outside clicks and keyboard
+  focus leaving the header close the menu; breakpoint changes hand focus to the
+  visible control after inert is updated. All event listeners are cleaned up.
+- `HowItWorks` accepts an optional `animated` prop. Home opts in to the Phase 1
+  stagger and hover classes. The About page keeps its original card behavior.
+  Informational cards remain outside the tab order.
+- Home cards lift 3px, change their shadow and softly highlight their icons on
+  fine-pointer hover. Their resting position and dimensions are preserved.
+- Only the hero action and Home's Get Started button opt in to elevation and
+  pressed shadows. The hero arrow moves 3px; touch devices do not retain lifts.
+- Shared reduced-motion rules disable entrances and transitions. Motion-only
+  hover states are restricted to fine pointers with no reduced-motion request.
+
+Verification: `npm run build` passed TypeScript and the production build. All
+16 selected browser tests passed: eight new interaction tests, seven hero tests,
+and the home/navigation regression. Checks cover desktop, mobile viewports,
+touch emulation, keyboard focus, rapid menu reversals, breakpoint changes,
+reduced motion, navigation and the Phase 2 slideshow. Saved layout and typography
+measurements matched before and after at 320, 390, 600, 768 and 1440px, with About
+card and button measurements also unchanged. Screenshots were visually reviewed.
