@@ -1,9 +1,10 @@
-# PESTPRINT motion system — Phase 1
+# PESTPRINT motion system
 
 The project uses CSS motion, with no additional dependencies. `src/motion.css`
 is imported once by `src/styles.css`. Existing hero effects, loading indicators
 and hover transitions use its shared tokens. New reveal utilities are opt-in;
-Phase 1 does not add entrances to pages or change their layouts.
+Phase 1 establishes the reusable foundation. Phase 2 applies it to the existing
+landing-page hero while retaining its layout.
 
 ## Timing and transitions
 
@@ -17,8 +18,12 @@ Phase 1 does not add entrances to pages or change their layouts.
 
 Use `--motion-ease-standard` for interactions and `--motion-ease-enter` for
 entrances. Ambient effects retain their existing longer durations, named in the
-same stylesheet. The existing five-second hero slide timer and its pause,
-visibility and reduced-motion handling remain in `Home`.
+same stylesheet. Phase 2's hero component (`src/hero.tsx`) owns the six-second
+slide timer, preloading, pause, visibility and reduced-motion handling. It uses
+the Phase 1 entrances with hero-only duration (600ms) and stagger (90ms) overrides.
+The 1400ms crossfade keeps the outgoing image opaque underneath the incoming
+image, with its zoom continuing through the fade. A slow or failed next image
+never replaces a ready frame. Reduced motion keeps the current scene static.
 
 ## Reusable classes
 
@@ -70,3 +75,26 @@ Elements have no permanently hidden base state, so disabling motion also removes
 stagger delays and shows content immediately. Keyboard focus within a reveal
 cancels that entrance so focused controls remain visible. Existing focus outlines
 are preserved. No behavior depends on animation completion events.
+
+## Phase 2 completion
+
+Status: COMPLETE. Verified on November 5, 2026.
+
+The interrupted implementation already contained the slideshow, decoded image
+preloading, continuous outgoing zoom, scanner sweep and glow, floating previews,
+staggered entrances, and motion controls. Completion work retained those features
+and finished the pending scanner movement, navigation and visual checks.
+No additional animation implementation or runtime fixes were needed.
+
+- `npm run build`: passed TypeScript compilation and the Vite production build.
+- Seven tests in `tests/hero.spec.ts`: passed, covering the full slide loop,
+  crossfade layers and continuous zoom, stationary copy, pause and hidden tabs,
+  reduced motion, slow/failed image requests, cleanup, scanner movement,
+  responsive layouts, keyboard focus and the primary action.
+- The home/navigation regression in `tests/app.spec.ts`: passed.
+- Visual review: all four desktop scenes and the mobile hero remained readable.
+  Responsive assertions and screenshots covered 320, 390, 600, 768 and 1440px.
+
+Browser checks used Microsoft Edge with emulated viewport sizes; physical mobile
+devices were not tested. Slow images intentionally keep the current frame past
+six seconds until the next image is decoded. Phase 3 has not started.

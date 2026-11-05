@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import {
   ArrowRight,
@@ -15,68 +14,12 @@ import {
 } from "lucide-react";
 import { asset, guides } from "./data";
 import { HowItWorks, PageHeading, PestGuideCard } from "./components";
-
-// Decorative hero assets are illustrative; analysis always uses the uploaded photo.
-const heroSlides = [
-  "hero-rice-mountains.webp",
-  "hero-rice-morning.webp",
-  "rice-field.jpg",
-  "hero-rice-sunset.webp",
-];
+import { Hero } from "./hero";
 
 export function Home() {
-  const [active, setActive] = useState(0);
-  const [paused, setPaused] = useState(false);
-  useEffect(() => {
-    const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
-    let timer: number | undefined;
-    const sync = () => {
-      window.clearInterval(timer);
-      if (motion.matches) setActive(0);
-      if (!motion.matches && !paused && !document.hidden)
-        timer = window.setInterval(() => setActive((slide) => (slide + 1) % heroSlides.length), 5000);
-    };
-    sync();
-    motion.addEventListener("change", sync);
-    document.addEventListener("visibilitychange", sync);
-    return () => {
-      window.clearInterval(timer);
-      motion.removeEventListener("change", sync);
-      document.removeEventListener("visibilitychange", sync);
-    };
-  }, [paused]);
   return (
-    <div className={`home-page ${paused ? "motion-paused" : ""}`}>
-      <section className="hero">
-        <div className="hero-slides" aria-hidden="true">
-          {heroSlides.map((photo, index) => (
-            <img key={photo} className={`hero-image ${index === active ? "active" : ""}`}
-              src={asset(photo)} alt="" fetchPriority={index === 0 ? "high" : "low"} />
-          ))}
-        </div>
-        <div className="hero-overlay" />
-        <div className="hero-inner">
-          <div className="hero-copy">
-            <h1>Identify Rice Pests<br />Through <span>Crop<br />Damage Images</span></h1>
-            <p className="hero-description">
-              An AI-powered tool that analyzes visible damage on rice crops and identifies the most likely pest responsible, even when the pest itself is not visible.
-            </p>
-            <Link to="/analyze" className="button hero-button">
-              Analyze a Rice Crop Image <ArrowRight size={19} />
-            </Link>
-          </div>
-          <div className="scan-visual" aria-hidden="true">
-            <div className="scan-frame"><i /><i /><i /><i /><div className="scan-line" /></div>
-            {[0, 1, 2].map((detail) => (
-              <div key={detail} className={`crop-preview crop-preview-${detail + 1}`}>
-                <img src={asset("hero-rice-mountains.webp")} alt="" />
-              </div>
-            ))}
-          </div>
-        </div>
-        <button className="hero-motion-control" aria-label={paused ? "Play background animation" : "Pause background animation"}
-          aria-pressed={paused} onClick={() => setPaused(!paused)}>{paused ? "Play" : "Pause"}</button>
-      </section>
+    <div className="home-page">
+      <Hero />
       <section className="how-section" aria-label="How PESTPRINT works"><HowItWorks /></section>
     </div>
   );
