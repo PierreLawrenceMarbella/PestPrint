@@ -30,6 +30,7 @@ import {
 } from "./data";
 import { PageHeading } from "./components";
 import { SupportedClasses, TipsForBetterResults } from "./classifications";
+import { AnalysisScanner } from "./analysis-scanner";
 
 export function CameraCapture({
   onCapture,
@@ -267,6 +268,7 @@ export function Analyze() {
   const [preview, setPreview] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [canceled, setCanceled] = useState(false);
   const [validating, setValidating] = useState(false);
   const [dragging, setDragging] = useState(false);
   const [camera, setCamera] = useState(false);
@@ -276,6 +278,7 @@ export function Analyze() {
   const input = useRef<HTMLInputElement>(null);
   const cameraInput = useRef<HTMLInputElement>(null);
   const chooseButton = useRef<HTMLButtonElement>(null);
+  const analyzeButton = useRef<HTMLButtonElement>(null);
   const previewHeading = useRef<HTMLSpanElement>(null);
   const restoreChooseFocus = useRef(false);
   const request = useRef<AbortController | null>(null);
@@ -328,6 +331,9 @@ export function Analyze() {
       chooseButton.current?.focus();
     }
   }, [preview]);
+  useEffect(() => {
+    if (canceled) analyzeButton.current?.focus();
+  }, [canceled]);
   useEffect(() => {
     alive.current = true;
     let disposed = false;
@@ -401,6 +407,7 @@ export function Analyze() {
       setFile(next);
       setPreview(url);
       setResult(null);
+      setCanceled(false);
     } catch (e) {
       URL.revokeObjectURL(url);
       if (token === selection.current && alive.current)
@@ -422,15 +429,17 @@ export function Analyze() {
     setPreview("");
     setResult(null);
     setError("");
+    setCanceled(false);
     if (input.current) input.current.value = "";
     if (cameraInput.current) cameraInput.current.value = "";
   }
   async function analyze() {
-    if (!file || request.current || validating) return;
+    if (!file || request.current || validating || status?.available === false) return;
     const controller = new AbortController();
     request.current = controller;
     setBusy(true);
     setError("");
+    setCanceled(false);
     let timedOut = false;
     const timer = window.setTimeout(() => {
       timedOut = true;
@@ -442,22 +451,30 @@ export function Analyze() {
         controller.signal,
         status?.classes,
       );
+      controller.signal.throwIfAborted();
       if (alive.current) {
         setResult(prediction);
         setStatusError("");
       }
     } catch (e) {
-      if (alive.current)
-        setError(
+      if (alive.current) {
+        if (controller.signal.aborted && !timedOut) setCanceled(true);
+        else setError(
           timedOut
             ? "Analysis timed out. Please try again with a smaller image."
             : (e as Error).message,
         );
+      }
     } finally {
       clearTimeout(timer);
-      request.current = null;
-      if (alive.current) setBusy(false);
+      if (request.current === controller) {
+        request.current = null;
+        if (alive.current) setBusy(false);
+      }
     }
+  }
+  function cancelAnalysis() {
+    request.current?.abort();
   }
   function openCamera() {
     if (/Android|iPhone|iPad/i.test(navigator.userAgent))
@@ -598,20 +615,15 @@ export function Analyze() {
                 </div>
                 <div key={preview} className={`image-preview motion-scale ${busy ? "is-analyzing" : ""}`}>
                   <img src={preview} alt="Selected rice crop preview" />
-                  {busy && (
-                    <div className="analysis-overlay">
-                      <LoaderCircle className="spin" size={32} />
-                      <strong>Analyzing your crop…</strong>
-                      <span>Looking at visible damage patterns</span>
-                    </div>
-                  )}
+                  {busy && <AnalysisScanner onCancel={cancelAnalysis} />}
                 </div>
                 <div className="preview-meta motion-fade-in">
                   <div>
                     <strong>{file.name}</strong>
                     <span>
-                      {(file.size / 1024 / 1024).toFixed(2)} MB · Ready for
-                      image-based analysis
+                      {(file.size / 1024 / 1024).toFixed(2)} MB · {canceled
+                        ? "Analysis canceled. Ready to try again."
+                        : "Ready for image-based analysis"}
                     </span>
                   </div>
                   <button
@@ -623,6 +635,7 @@ export function Analyze() {
                   </button>
                 </div>
                 <button
+                  ref={analyzeButton}
                   className="button analyze-button upload-control motion-fade-in motion-hover"
                   disabled={locked || status?.available === false}
                   onClick={() => void analyze()}
@@ -635,9 +648,6 @@ export function Analyze() {
                   {busy ? "Analyzing Image…" : "Analyze Image"}
                   {!busy && <ArrowRight size={20} className="upload-arrow motion-transition-transform" aria-hidden="true" />}
                 </button>
-                <div className="sr-only" role="status">
-                  {busy ? "Analysis in progress. Please wait." : `Image ready: ${file.name}`}
-                </div>
               </div>
             )}
             {error && (
@@ -651,6 +661,11 @@ export function Analyze() {
         </div>
         <SupportedClasses status={status} statusError={!!statusError} />
       </section>
+      <div className="sr-only" role="status" aria-atomic="true">
+        {busy ? "Analyzing rice crop image..." : canceled
+          ? "Analysis canceled. Your image is ready to try again."
+          : file ? `Image ready: ${file.name}` : ""}
+      </div>
       {camera && (
         <CameraCapture
           onCapture={(f) => void chooseFile(f)}

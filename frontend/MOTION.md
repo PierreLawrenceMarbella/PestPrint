@@ -163,3 +163,36 @@ native `capture="environment"` input with an image fixture. Physical camera
 hardware and native mobile camera applications were not tested. Model status
 and analysis error responses in the new tests are fixtures; AI inference was
 not changed or retested in this phase.
+
+## Phase 5: request-driven image scanning
+
+`src/analysis-scanner.tsx` renders only while Analyze's real request is pending.
+The original preview remains visible beneath a thin green sweep, a soft moving
+highlight, a steady illuminated border and four decorative corner brackets.
+These brackets are visual framing, not inferred damage locations. The processing
+spinner is indeterminate; no progress percentage or staged AI claims are shown.
+The scanner reuses the shared scan duration, easing and spinner animation.
+
+The visible status reads "Analyzing rice crop image...". A single live region
+outside the busy panel announces this state without waiting for `aria-busy` to
+clear. Reduced motion hides the sweep and stops the spinner, leaving stationary
+framing and readable status. Hidden tabs pause decorative animations; the request
+continues. The visibility listener is removed when the scanner unmounts.
+
+Cancel Analysis aborts the existing fetch, retains the image and returns focus
+to Analyze Image for retry. The request ref blocks duplicate submissions, while
+abort checks discard canceled responses. Success, failure, timeout and navigation
+remove the scanner immediately; there is no minimum display time or dependency
+on animation completion. Canceling the browser request does not guarantee that
+the backend has stopped computation already in progress.
+
+Verification: `npm run build` passed TypeScript and the production build. All
+13 scanning and upload browser tests passed, including six new scanning tests.
+Coverage includes pending requests, duplicate clicks, success while the sweep is
+paused, unchanged returned probabilities, HTTP/network/malformed-response errors,
+retry, cancellation and late responses, timeout, navigation cleanup, hidden tabs,
+live reduced-motion changes and responsive layouts at 320, 390, 768 and 1440px.
+The responsive test passed again after waiting for the existing mobile menu's
+breakpoint transition before screenshots. Desktop and mobile scans were visually
+reviewed. API responses are explicit browser-test fixtures; real model inference
+was not rerun. No backend, model or classification values were modified.

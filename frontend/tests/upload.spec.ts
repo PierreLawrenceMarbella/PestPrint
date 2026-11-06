@@ -170,7 +170,7 @@ test("upload controls show hover, keyboard and pressed feedback while analysis l
   await expect(page.getByRole("button", { name: "Replace" })).toBeDisabled();
   await expect(page.getByRole("button", { name: "Remove image" })).toBeDisabled();
   await expect(page.getByLabel("Choose crop image")).toBeDisabled();
-  await expect(page.getByRole("status")).toHaveText("Analysis in progress. Please wait.");
+  await expect(page.getByRole("status")).toHaveText("Analyzing rice crop image...");
   release();
   await expect(page.getByRole("alert")).toContainText("Temporary analysis failure");
   expect(calls).toBe(1);
