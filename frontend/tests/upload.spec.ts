@@ -24,6 +24,7 @@ async function imageTransfer(page: Page, count = 1) {
 
 test("file drag feedback survives nested elements and resets on leave, cancellation and outside drops", async ({ page }) => {
   await page.goto("/analyze");
+  await expect(page.locator(".analyze-page")).toHaveCSS("transform", "none");
   const zone = page.locator(".dropzone");
   const cloud = zone.locator(".upload-cloud");
   const size = await zone.boundingBox();
@@ -180,6 +181,7 @@ test("upload controls show hover, keyboard and pressed feedback while analysis l
 
 test("the four supported image cards highlight without changing dimensions and keep guide links", async ({ page }) => {
   await page.goto("/analyze");
+  await expect(page.locator(".analyze-page")).toHaveCSS("transform", "none");
   const cards = page.locator(".classification-card");
   await expect(cards.locator("h3")).toHaveText(["Healthy Rice", "Stem Borer Damage", "Rice Leaffolder Damage", "Unknown (Other Damage)"]);
   const card = cards.first();

@@ -48,6 +48,15 @@
 .motion-fade-up { animation-name: pp-fade-up; }
 .motion-scale { animation-name: pp-scale-in; }
 
+/* Route entrances start immediately; child effects keep their own timing. */
+.motion-page.motion-fade-up {
+  animation-duration: var(--motion-duration-standard);
+  animation-delay: 0ms;
+}
+.motion-section { --motion-distance: 6px; }
+.motion-reveal-pending { opacity: 0; transform: translateY(var(--motion-distance)); }
+.motion-reveal-pending:focus-within { opacity: 1; transform: none; }
+
 .motion-stagger > :is(.motion-fade-in, .motion-fade-up, .motion-scale) {
   animation-delay: calc(var(--motion-delay, 0ms) + clamp(
     0ms,
@@ -94,6 +103,7 @@
     scroll-behavior: auto !important;
   }
   .motion-hover { translate: none !important; }
+  .motion-reveal-pending { opacity: 1 !important; transform: none !important; }
   .hero-image, .classification-card:hover img { transform: none !important; }
   .hero-motion-control { display: none; }
 }

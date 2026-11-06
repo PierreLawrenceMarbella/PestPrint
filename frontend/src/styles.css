@@ -290,6 +290,14 @@ main { border-radius: 0 0 12px 12px; }
 .guide-card-content { padding-block: 10px; min-width: 0; }
 .guide-card h2 { font-size: 17px; font-weight: 700; letter-spacing: -.3px; margin-bottom: 5px; }
 .guide-card p { font-size: 13px; color: var(--muted); line-height: 1.45; }
+.guide-page .guide-card:focus-within { border-color: #70a88a; box-shadow: 0 5px 15px #063b241c; }
+@media (hover: hover) and (pointer: fine) {
+  .guide-page .guide-card:hover { border-color: #70a88a; box-shadow: 0 5px 15px #063b241c; }
+}
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .guide-page .guide-card:hover > img { transform: scale(1.025); }
+  .guide-page .guide-card:hover .detail-arrow { transform: translateX(3px); }
+}
 .detail-link { display: inline-flex; align-items: center; justify-content: center; gap: 8px; color: #005a30; border: 1px solid #88c5a4; border-radius: 6px; padding: 10px 13px; font-size: 12px; font-weight: 600; white-space: nowrap; }
 .detail-link:hover { background: var(--mint); }
 .back-link { margin-bottom: 20px; }
@@ -302,6 +310,7 @@ main { border-radius: 0 0 12px 12px; }
 .detail-intro { margin-top: 20px; }
 .detail-copy > p { font-size: 14px; color: var(--muted); }
 .detail-copy h2 { font-size: 18px; margin: 24px 0 10px; }
+.detail-copy > :is(h1, h2) { --motion-distance: 6px; }
 .check-list { list-style: none; display: grid; gap: 10px; padding: 0; margin: 12px 0; }
 .check-list li { display: flex; align-items: flex-start; gap: 9px; font-size: 14px; line-height: 1.5; color: var(--muted); }
 .check-list svg { margin-top: 2px; color: var(--green); }

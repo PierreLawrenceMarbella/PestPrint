@@ -225,7 +225,7 @@ export function AnalysisResult({
   return (
     <div className="page-wrap results-page">
       <h1 ref={heading} tabIndex={-1} className="sr-only">Your Analysis Results</h1>
-      <section className={`results-panel panel ${tone}`}>
+      <section className={`results-panel panel ${tone} motion-page motion-fade-up`}>
         <div className="result-grid">
           <figure className="result-image motion-fade-in">
             <img src={preview} alt="Uploaded rice crop used for this analysis" />
@@ -503,7 +503,7 @@ export function Analyze() {
       />
     );
   return (
-    <div className="page-wrap analyze-page">
+    <div className="page-wrap analyze-page motion-page motion-fade-up">
       <PageHeading
         title="Upload or Capture a Rice Crop Image"
       >

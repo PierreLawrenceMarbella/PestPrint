@@ -64,7 +64,7 @@ for (const [id, tone, color, slug] of [
     const confidence = page.locator(".confidence-track .result-bar-fill");
     const rows = page.locator(".probability-row");
     const actions = page.locator(".result-actions");
-    const bounds = await page.locator(".result-grid").boundingBox();
+    const bounds = await page.locator(".results-page").boundingBox();
     await expect(page.locator(".results-panel")).toHaveClass(new RegExp(tone));
     await expect(page.getByAltText("Uploaded rice crop used for this analysis")).toHaveAttribute("src", preview!);
     await expect(page.locator(".confidence strong")).toHaveText("87.4%");
@@ -108,7 +108,7 @@ for (const [id, tone, color, slug] of [
     await expect(confidence).toHaveCSS("background-color", color);
     await expect(photo).toHaveCSS("opacity", "1");
     await expect(actions).toHaveCSS("opacity", "1");
-    expect(await page.locator(".result-grid").boundingBox()).toEqual(bounds);
+    expect(await page.locator(".results-page").boundingBox()).toEqual(bounds);
     const ratio = await confidence.evaluate(el => el.getBoundingClientRect().width / el.parentElement!.getBoundingClientRect().width);
     expect(ratio).toBeCloseTo(data.confidence, 3);
     await page.screenshot({ path: `../.artifacts/phase6-${id}-desktop.png`, fullPage: true });

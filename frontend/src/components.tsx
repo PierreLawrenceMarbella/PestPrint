@@ -212,8 +212,8 @@ export function PestGuideCard({
   compact?: boolean;
 }) {
   return (
-    <article className={compact ? "guide-card compact" : "guide-card"}>
-      <img src={asset(entry.image)} alt={entry.alt} loading="lazy" />
+    <article className={`guide-card motion-hover motion-section ${compact ? "compact" : ""}`}>
+      <img className="motion-transition-transform" src={asset(entry.image)} alt={entry.alt} loading="lazy" />
       <div className="guide-card-content">
         <h2>
           {entry.name}
@@ -221,7 +221,7 @@ export function PestGuideCard({
         <p>{entry.summary}</p>
       </div>
         <Link to={`/pest-guide/${entry.slug}`} className="detail-link">
-          View Details <ChevronRight size={16} />
+          View Details <ChevronRight className="detail-arrow motion-transition-transform" size={16} aria-hidden="true" />
         </Link>
     </article>
   );

@@ -15,18 +15,20 @@ import {
 import { asset, guides } from "./data";
 import { HowItWorks, PageHeading, PestGuideCard } from "./components";
 import { Hero } from "./hero";
+import { useSectionReveals } from "./scroll-reveal";
 
 export function Home() {
   return (
-    <div className="home-page">
+    <div className="home-page motion-page motion-fade-up">
       <Hero />
       <section className="how-section" aria-label="How PESTPRINT works"><HowItWorks animated /></section>
     </div>
   );
 }
 export function PestGuide() {
+  const reveal = useSectionReveals();
   return (
-    <div className="page-wrap guide-page">
+    <div ref={reveal} className="page-wrap guide-page motion-page motion-fade-up">
       <PageHeading
         title="Common Rice Pests and Their Damage"
       >
@@ -43,24 +45,25 @@ export function PestGuide() {
 }
 export function PestDetail() {
   const { slug } = useParams();
+  const reveal = useSectionReveals(slug);
   const entry = guides.find((item) => item.slug === slug);
   if (!entry) return <NotFound />;
   return (
-    <div className="page-wrap detail-page">
+    <div ref={reveal} key={entry.slug} className="page-wrap detail-page motion-page motion-fade-up">
       <Link className="back-link" to="/pest-guide">
         <ArrowLeft size={17} /> Back to Pest Guide
       </Link>
       <article className="detail-panel">
-        <div className="detail-photo">
+        <div className="detail-photo motion-fade-in">
           <img src={asset(entry.image)} alt={entry.alt} />
           <span>{entry.category}</span>
         </div>
-        <div className="detail-copy">
+        <div className="detail-copy motion-fade-in">
           <p className="eyebrow">CROP IDENTIFICATION GUIDE</p>
-          <h1>{entry.name}</h1>
+          <h1 className="motion-fade-up">{entry.name}</h1>
           <p className="scientific">{entry.scientific}</p>
           <p className="detail-intro">{entry.detail}</p>
-          <h2>
+          <h2 className="motion-section">
             {entry.slug === "unknown-damage"
               ? "What this result can mean"
               : entry.slug === "healthy-rice"
@@ -79,11 +82,11 @@ export function PestDetail() {
               </li>
             ))}
           </ul>
-          <h2>What to look for</h2>
+          <h2 className="motion-section">What to look for</h2>
           <p>{entry.observation}</p>
           {entry.photoTips && (
             <>
-              <h2>Tips for clearer crop photographs</h2>
+              <h2 className="motion-section">Tips for clearer crop photographs</h2>
               <p>{entry.photoTips}</p>
               <p className="unknown-detail-note">
                 General explanatory guidance only. These factors were not
@@ -107,7 +110,7 @@ export function PestDetail() {
           </Link>
         </div>
       </article>
-      <div className="notice">
+      <div className="notice motion-section">
         <Info size={20} />
         <p>
           These are typical characteristics, not a diagnosis of your crop. Seek
@@ -119,8 +122,9 @@ export function PestDetail() {
   );
 }
 export function About() {
+  const reveal = useSectionReveals();
   return (
-    <div className="page-wrap about-page">
+    <div ref={reveal} className="page-wrap about-page motion-page motion-fade-up">
       <PageHeading
         eyebrow="ABOUT PESTPRINT"
         title="Understanding damage. Supporting better decisions."
@@ -128,7 +132,7 @@ export function About() {
         A closer look at your rice crop can reveal a lot. PESTPRINT helps you
         take that first look with confidence.
       </PageHeading>
-      <section className="about-intro panel">
+      <section className="about-intro panel motion-section">
         <img
           src={asset("rice-field.jpg")}
           alt="Developing rice grains on a green panicle"
@@ -150,13 +154,13 @@ export function About() {
           </p>
         </div>
       </section>
-      <section className="about-workflow">
+      <section className="about-workflow motion-section">
         <p className="eyebrow">A SIMPLE PROCESS</p>
         <h2>How image-based identification works</h2>
         <HowItWorks />
       </section>
       <div className="about-grid">
-        <section className="panel">
+        <section className="panel motion-section">
           <BrainCircuit size={25} />
           <h2>What the model recognizes</h2>
           <p>The connected model currently distinguishes four categories:</p>
@@ -174,7 +178,7 @@ export function About() {
             ))}
           </ul>
         </section>
-        <section className="panel">
+        <section className="panel motion-section">
           <ShieldCheck size={25} />
           <h2>Know the limits</h2>
           <p>
@@ -194,7 +198,7 @@ export function About() {
           </p>
         </section>
       </div>
-      <div className="about-cta">
+      <div className="about-cta motion-section">
         <Leaf size={28} />
         <h2>Get a clearer picture of your crop.</h2>
         <Link to="/analyze" className="button">
@@ -206,7 +210,7 @@ export function About() {
 }
 export function NotFound() {
   return (
-    <div className="page-wrap empty-page">
+    <div className="page-wrap empty-page motion-page motion-fade-up">
       <Leaf size={44} />
       <h1>This page hasn’t taken root.</h1>
       <p>Head back home or explore the rice pest guide.</p>

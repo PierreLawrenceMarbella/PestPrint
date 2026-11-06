@@ -99,8 +99,9 @@ test("Home primary actions elevate, shift only the arrow and have a restrained p
   await expect(page).toHaveURL(/\/analyze$/);
   const choose = page.getByRole("button", { name: "Choose Image", exact: true });
   await choose.hover();
-  await expect(choose).toHaveCSS("translate", "none");
-  await expect(choose).not.toHaveClass(/home-action|motion-hover/);
+  // Phase 4 opted upload controls into the shared hover utility.
+  await expect(choose).toHaveCSS("translate", "0px -2px");
+  await expect(choose).not.toHaveClass(/home-action/);
 });
 
 test("mobile menu fades in and out, excludes closed links from focus and restores focus on Escape", async ({ page }) => {
@@ -183,6 +184,7 @@ test("breakpoint changes keep navigation accessible and About feature cards keep
   await page.goto("/about");
   const cards = page.locator(".about-workflow .feature-card");
   await expect(cards).toHaveCount(4);
+  await expect(page.locator(".about-workflow")).toHaveCSS("transform", "none");
   const before = await cards.first().boundingBox();
   await cards.first().hover();
   await expect(cards.first()).toHaveCSS("animation-name", "none");

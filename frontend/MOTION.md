@@ -235,3 +235,47 @@ result states at 320, 390, 600, 768 and 1440px (20 comparisons, no horizontal
 overflow). Desktop result screenshots and the mobile Unknown result were
 visually reviewed. Tests used Microsoft Edge and labeled API fixtures, not new
 real model inference. No prediction pipeline or model files were changed.
+
+## Phase 7: Pest Guide and page transitions
+
+- The four guide cards use the shared hover lift, soft shadows and a green
+  border highlight. Their existing images zoom subtly and View Details arrows
+  move 3px on fine-pointer hover. Keyboard focus receives the same card highlight
+  and retains the link outline. Touch and reduced motion do not retain movement.
+- Existing page roots use `motion-page motion-fade-up` for a 250ms entrance,
+  with no delay or exit wait. Navigation and its focus handling remain outside
+  these elements. Analyze keeps its existing state through ordinary rerenders;
+  Results apply the entrance to the panel beneath the focused result heading.
+  The Phase 6 reveal sequence and raw values are retained. Detail roots use the
+  guide slug as a key so a changed detail entry gets its own entrance.
+- Detail imagery and copy fade in; the main heading enters with a 6px lift.
+  Section headings and the lower notice reveal once as needed. About sections
+  and guide cards also opt into section reveals on their existing elements.
+- `useSectionReveals` in `src/scroll-reveal.ts` owns one IntersectionObserver per
+  mounted page. Content starts visible; sections below the viewport are armed
+  and unobserved after their first entrance. Focus exposes a pending section
+  immediately. Reduced motion exposes all sections and clears pending effects.
+  Missing IntersectionObserver support leaves everything visible. Observers,
+  focus listeners and media listeners are cleaned up on unmount or slug changes.
+  No scroll listeners, animation timers, dependencies or layout wrappers were
+  added. Child motion keeps its original durations.
+
+Verification: TypeScript and the production build passed (`npm run build`).
+All 36 selected browser tests passed after targeted reruns: eight new guide and
+navigation tests, eight Home/navigation regressions, seven result tests, six
+scanning tests and seven upload tests. Three older position assertions initially
+measured during the new entrance; they now wait for the entrance to settle and
+passed on rerun. An older Phase 3 expectation was also updated to recognize the
+upload button hover already added in Phase 4.
+
+Checks cover all four guide links, hover return, keyboard focus, rapid navigation
+while an entrance is paused, retained upload state, result handoff, scroll-once
+behavior, observer cleanup and fallback, reduced motion, and mobile touch
+navigation. Layout and typography matched the saved baseline for eight routes
+at 320, 390, 768 and 1440px (32 comparisons), plus all four result states at five
+widths (20 comparisons). There was no horizontal overflow. Desktop guide/detail
+and mobile detail screenshots were visually reviewed.
+
+Browser verification used Microsoft Edge with emulated mobile/touch viewports.
+Analysis responses in navigation and result checks were labeled development
+fixtures; the model and backend were not changed or re-evaluated in this phase.
