@@ -257,13 +257,30 @@ main { border-radius: 0 0 12px 12px; }
 .probability-row > span { line-height: 1.25; }
 .probability-row strong { text-align: right; font-weight: 400; font-variant-numeric: tabular-nums; }
 .probability-track { height: 13px; border-radius: 4px; overflow: hidden; background: #e8ecf0; }
-.probability-track > span { display: block; height: 100%; background: #a8b7c7; border-radius: 4px; min-width: 2px; }
+.probability-track > span { display: block; height: 100%; background: #a8b7c7; border-radius: 4px; }
 .probability-track > .pest { background: #fb2447; }
 .probability-track > .healthy { background: #19984b; }
 .probability-track > .unknown { background: #e69a06; }
 .result-actions { display: grid; grid-template-columns: 1fr 1.35fr; gap: 15px; margin-top: 22px; }
 .result-actions .button { font-size: 13px; padding: 10px 12px; }
 .result-disclaimer { text-align: center; font-size: 11px; color: #52665c; margin-top: 13px; }
+/* Short, overlapping result entrances reuse Phase 1 reveal utilities. */
+.results-panel { --motion-duration: var(--motion-duration-standard); }
+.results-page .result-data { --motion-delay: var(--motion-stagger-step); }
+.results-page .prediction-icon { --motion-delay: calc(2 * var(--motion-stagger-step)); }
+.results-page .prediction-title > div { --motion-delay: calc(3 * var(--motion-stagger-step)); }
+.results-page .confidence, .results-page .confidence-track { --motion-delay: calc(4 * var(--motion-stagger-step)); }
+.results-page .probabilities { --motion-delay: calc(5 * var(--motion-stagger-step)); }
+.results-page .result-actions { --motion-delay: calc(9 * var(--motion-stagger-step)); }
+.results-page .result-bar-fill { transform-origin: left; animation: pp-result-bar var(--motion-duration-reveal) var(--motion-ease-enter) var(--motion-delay, 0ms) backwards; }
+/* Carry the row's shared stagger timing through the track to its fill. */
+.results-page .probability-track, .results-page .probability-track .result-bar-fill { animation-delay: inherit; }
+.results-page .result-action { box-shadow: 0 2px 6px #063b2414; }
+.results-page .result-action:active { translate: 0 0; box-shadow: inset 0 1px 3px #063b2433; }
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .results-page .result-action:hover { box-shadow: 0 5px 13px #063b2429; }
+}
+@keyframes pp-result-bar { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 
 /* Consistent photographic guide rows and existing detail/About routes. */
 .guide-page { max-width: 1000px; padding: 28px 35px; }

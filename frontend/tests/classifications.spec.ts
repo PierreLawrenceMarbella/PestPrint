@@ -92,7 +92,7 @@ test("actual model Unknown result uses four genuine probabilities and resets cle
     page.getByRole("progressbar", { name: "Unknown (Other Damage)" }),
   ).toHaveAttribute(
     "aria-valuenow",
-    String(Number((data.confidence * 100).toFixed(1))),
+    String(data.confidence * 100),
   );
   await expect(
     page.getByRole("progressbar", { name: "Brown Planthopper Damage" }),

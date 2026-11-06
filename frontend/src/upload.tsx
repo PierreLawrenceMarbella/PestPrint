@@ -31,6 +31,16 @@ import {
 import { PageHeading } from "./components";
 import { SupportedClasses, TipsForBetterResults } from "./classifications";
 import { AnalysisScanner } from "./analysis-scanner";
+import { staggerStyle } from "./motion";
+
+// Keep the existing one-decimal display without implying zero or certainty
+// for a nonzero or less-than-one response. Bar widths retain the raw values.
+function formatResultPercentage(value: number) {
+  const percentage = value * 100;
+  if (value > 0 && percentage < 0.1) return "<0.1%";
+  if (value < 1 && percentage > 99.9) return ">99.9%";
+  return `${percentage.toFixed(1)}%`;
+}
 
 export function CameraCapture({
   onCapture,
@@ -157,15 +167,17 @@ export function PredictionBar({
   value,
   leading,
   tone,
+  index = 0,
 }: {
   id: ClassId;
   value: number;
   leading: boolean;
   tone: string;
+  index?: number;
 }) {
-  const percentage = (value * 100).toFixed(1);
+  const percentage = formatResultPercentage(value);
   return (
-    <div className={`probability-row ${leading ? "leading" : ""}`}>
+    <div className={`probability-row motion-fade-in ${leading ? "leading" : ""}`} style={staggerStyle(index)}>
       <span>{classNames[id]}</span>
       <div
         className="probability-track"
@@ -173,14 +185,14 @@ export function PredictionBar({
         aria-label={classNames[id]}
         aria-valuemin={0}
         aria-valuemax={100}
-        aria-valuenow={Number(percentage)}
+        aria-valuenow={value * 100}
       >
         <span
-          className={leading ? tone : ""}
+          className={`result-bar-fill ${leading ? tone : ""}`}
           style={{ width: `${value * 100}%` }}
         />
       </div>
-      <strong>{percentage}%</strong>
+      <strong>{percentage}</strong>
     </div>
   );
 }
@@ -215,24 +227,24 @@ export function AnalysisResult({
       <h1 ref={heading} tabIndex={-1} className="sr-only">Your Analysis Results</h1>
       <section className={`results-panel panel ${tone}`}>
         <div className="result-grid">
-          <figure className="result-image">
+          <figure className="result-image motion-fade-in">
             <img src={preview} alt="Uploaded rice crop used for this analysis" />
             <figcaption className="sr-only">{filename}</figcaption>
           </figure>
-          <div className="result-data">
+          <div className="result-data motion-fade-in">
             <div className="prediction-summary">
               <div className="prediction-title">
-                <span className="prediction-icon">
+                <span className="prediction-icon motion-scale" aria-hidden="true">
                   {unknown ? <span aria-hidden="true">?</span> : healthy ? <Leaf size={34} /> : <Bug size={34} />}
                 </span>
-                <div>
+                <div className="motion-fade-in">
                   <p className="prediction-label">{unknown || healthy ? "Predicted Class" : "Predicted Pest"}</p>
                   <h2>{unknown ? <>Unknown <br />(Other Damage)</> : guide?.name ?? classNames[result.prediction]}</h2>
                   {!unknown && !healthy && <p className="scientific">({guide?.scientific})</p>}
                 </div>
               </div>
-              <p className="confidence"><span>Confidence Score: </span><strong>{(result.confidence * 100).toFixed(1)}%</strong></p>
-              <div className="confidence-track" aria-hidden="true"><span style={{ width: `${result.confidence * 100}%` }} /></div>
+              <p className="confidence motion-fade-in"><span>Confidence Score: </span><strong>{formatResultPercentage(result.confidence)}</strong></p>
+              <div className="confidence-track" aria-hidden="true"><span className="result-bar-fill" style={{ width: `${result.confidence * 100}%` }} /></div>
             </div>
             <div className="characteristics">
               <h3>{healthy || unknown ? "Identified Characteristics" : "Identified Damage Characteristics"}</h3>
@@ -247,15 +259,15 @@ export function AnalysisResult({
         </div>
         <section className="probability-section" aria-labelledby="probabilities-title">
           <h3 id="probabilities-title">Prediction Probabilities</h3>
-          <div className="probabilities">
+          <div className="probabilities motion-stagger">
             {(Object.entries(result.probabilities) as [ClassId, number][])
               .sort((a, b) => b[1] - a[1])
-              .map(([id, value]) => <PredictionBar key={id} id={id} value={value} leading={id === result.prediction} tone={tone} />)}
+              .map(([id, value], index) => <PredictionBar key={id} id={id} value={value} leading={id === result.prediction} tone={tone} index={index} />)}
           </div>
         </section>
-        <div className="result-actions">
-          <button className="button secondary" onClick={onReset}><RefreshCw size={18} /> Analyze Another Image</button>
-          {guide && <Link className="button" to={`/pest-guide/${guide.slug}`}><Info size={18} /> {unknown ? "Learn More" : `Learn More About ${guide.name}`}</Link>}
+        <div className="result-actions motion-fade-in">
+          <button className="button secondary result-action motion-hover" onClick={onReset}><RefreshCw size={18} /> Analyze Another Image</button>
+          {guide && <Link className="button result-action motion-hover" to={`/pest-guide/${guide.slug}`}><Info size={18} /> {unknown ? "Learn More" : `Learn More About ${guide.name}`}</Link>}
         </div>
       </section>
       <p className="result-disclaimer">Model confidence is not a guarantee of correctness. Consult an agricultural expert if you are uncertain.</p>

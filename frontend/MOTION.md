@@ -196,3 +196,42 @@ The responsive test passed again after waiting for the existing mobile menu's
 breakpoint transition before screenshots. Desktop and mobile scans were visually
 reviewed. API responses are explicit browser-test fixtures; real model inference
 was not rerun. No backend, model or classification values were modified.
+
+## Phase 6: classification result reveal
+
+Only the Results Pages opt in to the new sequence. The uploaded photo fades in,
+followed by the information panel, a subtle icon scale and the class text. The
+confidence fill follows, then the probability rows and fills stagger in their
+existing sorted order. Actions fade in and use the shared 2px hover lift with
+soft shadows and pressed feedback. The final probability fill completes at
+880ms with default tokens. Layouts, fonts and the existing pest, healthy and
+Unknown themes are retained.
+
+The sequence reuses Phase 1 entrances, `staggerStyle` and timing tokens. A single
+result-only keyframe scales each fill from zero to its raw response width. The
+probability track and fill inherit the row's shared stagger delay. Numeric labels
+show their returned scores immediately; there are no counter timers or temporary
+prediction values. Keyboard focus reveals delayed actions immediately. Reduced
+motion removes all entrances and shows the final bar widths without delays.
+
+Genuine zero scores now have zero-width fills instead of a minimum 2px segment.
+The normal one-decimal percentage display is retained. Positive scores below
+0.1% display `<0.1%`, and less-than-certain scores above 99.9% display `>99.9%`.
+This avoids falsely displaying zero or certainty. Progressbar accessibility
+values and fill widths retain the raw response percentages. The existing API
+validation and score selection are unchanged: missing classes are never added,
+and Unknown appears in the score list only if the connected backend returns it.
+
+Verification: TypeScript and the production build passed (`npm run build`). All
+13 selected browser tests passed: seven new result tests and six scanning
+regressions. Explicit development fixtures cover all four intended results,
+their themes and guide links, the reveal order, zero-to-value bar animation,
+score precision, genuine zero scores, a model that does not support Unknown,
+reset/retry, immediate keyboard access and live reduced-motion changes. The
+scanning tests continue to verify immediate result handoff and request cleanup.
+
+Layout and typography measurements matched the saved original for all four
+result states at 320, 390, 600, 768 and 1440px (20 comparisons, no horizontal
+overflow). Desktop result screenshots and the mobile Unknown result were
+visually reviewed. Tests used Microsoft Edge and labeled API fixtures, not new
+real model inference. No prediction pipeline or model files were changed.
