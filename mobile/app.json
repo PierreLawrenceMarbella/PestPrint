@@ -1,0 +1,22 @@
+{
+  "expo": {
+    "name": "PESTPRINT",
+    "slug": "pestprint-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "platforms": ["android"],
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "android": {
+      "package": "com.pestprint.mobile",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "backgroundColor": "#EAF6EE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    }
+  }
+}
