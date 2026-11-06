@@ -22,7 +22,15 @@
       "predictiveBackGestureEnabled": false
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "Allow PESTPRINT to take a photo of your rice crop.",
+          "photosPermission": "Allow PESTPRINT to select a rice crop image.",
+          "microphonePermission": false
+        }
+      ]
     ]
   }
 }

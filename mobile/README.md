@@ -1,8 +1,8 @@
 # PESTPRINT Mobile
 
 A native Android app built with React Native, Expo SDK 57, Expo Router, and
-TypeScript. Phase 2A provides the navigation shell and reference-aligned
-PESTPRINT design system. Image upload and AI analysis are not connected yet.
+TypeScript. Phase 4 adds gallery selection, camera capture, and image review to
+the Analyze screen. AI analysis is not connected yet.
 
 ## Requirements
 
@@ -30,6 +30,19 @@ npm.cmd run android
 ```
 
 Press `Ctrl+C` to stop the Expo development server.
+
+## Select a crop image
+
+Open **Analyze** and choose an image from your gallery or take a photo. Camera
+access is requested when needed; Android's photo picker gives the app access only
+to images you select.
+
+JPG, JPEG, and PNG files up to 10MB are accepted. Review the preview, replace or
+remove the image, then tap **Analyze Image**. This opens a clearly labeled
+processing placeholder. Your image stays on the device and no prediction is made.
+
+Selecting another tab keeps the current image. Closing or restarting the app may
+clear it; permanent image storage is not included in Phase 4.
 
 ## Navigation
 
@@ -61,8 +74,9 @@ mobile/
 |-- src/
 |   |-- components/              Reusable buttons, cards, headings, and containers
 |   |-- constants/               Supported category content
+|   |-- hooks/                   Image selection and camera state
 |   |-- screens/                 Home, Analyze, Pest Guide, and About screens
-|   |-- services/                Reserved for later API integration
+|   |-- services/                Image file validation
 |   |-- theme/                   Colors, spacing, type sizes, and radii
 |   `-- types/                   Shared TypeScript types
 |-- app.json                     Android and Expo Router configuration
@@ -71,7 +85,7 @@ mobile/
 ```
 
 The website and Python backend remain separate. Python, the dataset, and the
-`.pth` model are not required to run the Phase 2 mobile app.
+`.pth` model are not required to run the Phase 4 mobile app.
 
 ## Development checks
 
@@ -101,3 +115,19 @@ APK.
   and Unknown (Other Damage).
 
 A physical Android phone was not tested in this phase.
+
+## Phase 4 verification
+
+- TypeScript, Expo dependency checks, and all 21 Expo Doctor checks passed.
+- Android Hermes bundle export passed.
+- Android API 36.1 emulator checks passed for JPEG and PNG selection, cancellation,
+  replacement, removal, unsupported GIF rejection, and rejection of files over 10MB.
+- Camera permission denial, camera cancellation, and capture with the emulator's
+  virtual camera passed; captured photos returned to the preview.
+- Analyze opened the labeled placeholder. Android Back returned to the same image,
+  and switching tabs preserved it.
+- Photo cards, safe areas, and scrolling were visually checked at standard and
+  compact sizes, including larger system text.
+
+Physical-phone camera quality and an installable APK were not tested. AI inference
+and permanent image storage belong to later phases.
