@@ -14,28 +14,24 @@ test("home, education navigation, assets, and mobile layout", async ({
   await expect(page.getByRole("heading", { level: 1 })).toContainText(
     "Identify Rice Pests",
   );
-  await expect(page.locator(".hero-image")).toHaveJSProperty(
-    "naturalWidth",
-    4608,
-  );
+  await expect(page.locator(".hero-slide")).toHaveCount(4);
+  await expect(page.locator(".hero-slide.active .hero-image")).toBeVisible();
+  await expect(page.locator(".features .feature-card")).toHaveCount(4);
+  await expect.poll(() => page.locator(".hero-image").evaluateAll(images => images.every(image => (image as HTMLImageElement).naturalWidth > 0))).toBe(true);
   await page.screenshot({
     path: "../.artifacts/home-desktop.png",
     fullPage: true,
   });
-  await page.getByRole("link", { name: "Explore the Pest Guide" }).click();
+  await page.getByRole("navigation").getByRole("link", { name: "Pest Guide" }).click();
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
     "Common Rice Pests and Their Damage",
   );
+  await page.screenshot({ path: "../.artifacts/guide-desktop.png", fullPage: true });
   await page.getByRole("link", { name: "View Details" }).first().click();
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
-    "Brown Planthopper",
+    "Stem Borer",
   );
-  await expect(
-    page.getByText(
-      "current PESTPRINT model does not predict Brown Planthopper",
-      { exact: false },
-    ),
-  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Typical damage characteristics" })).toBeVisible();
   await page.setViewportSize({ width: 390, height: 844 });
   for (const url of [
     "/",
@@ -214,6 +210,10 @@ for (const predicted of [
     await expect(
       page.getByRole("heading", { name: "Your Analysis Results" }),
     ).toBeVisible();
+    const photo = await page.locator(".result-image").boundingBox();
+    const probabilities = await page.locator(".probability-section").boundingBox();
+    expect(probabilities!.y).toBeGreaterThan(photo!.y + photo!.height);
+    await page.screenshot({ path: `../.artifacts/result-${predicted}-fixture.png`, fullPage: true });
     if (predicted === "unknown") {
       await expect(
         page.getByRole("heading", {
@@ -274,7 +274,7 @@ test("camera permission failure provides a usable fallback", async ({
     });
   });
   await page.goto("/analyze");
-  await page.getByRole("button", { name: "Take a Photo" }).click();
+  await page.getByRole("button", { name: "Capture Image" }).click();
   await expect(page.getByRole("dialog")).toBeVisible();
   await expect(page.getByRole("alert")).toContainText("permission was denied");
   await expect(
@@ -345,7 +345,7 @@ test("camera capture produces a photo and stops the video stream", async ({
     });
   });
   await page.goto("/analyze");
-  await page.getByRole("button", { name: "Take a Photo" }).click();
+  await page.getByRole("button", { name: "Capture Image" }).click();
   await expect(
     page.getByRole("button", { name: "Capture Photo" }),
   ).toBeEnabled();
