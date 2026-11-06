@@ -1,14 +1,33 @@
-import type { PropsWithChildren } from 'react';
-import { ScrollView, StyleSheet } from 'react-native';
+import type { PropsWithChildren, ReactNode } from 'react';
+import {
+  ScrollView,
+  StyleSheet,
+  View,
+  type StyleProp,
+  type ViewStyle,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { theme } from '../theme';
 
-export function Screen({ children }: PropsWithChildren) {
+type ScreenProps = PropsWithChildren<{
+  contentStyle?: StyleProp<ViewStyle>;
+  header?: ReactNode;
+  testID?: string;
+}>;
+
+export function Screen({ children, contentStyle, header, testID }: ScreenProps) {
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.content}>
-        {children}
+    <SafeAreaView edges={['top', 'left', 'right']} style={styles.safeArea}>
+      {header}
+      <ScrollView
+        contentContainerStyle={styles.content}
+        contentInsetAdjustmentBehavior="automatic"
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+        testID={testID}
+      >
+        <View style={[styles.contentInner, contentStyle]}>{children}</View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -21,6 +40,13 @@ const styles = StyleSheet.create({
   },
   content: {
     flexGrow: 1,
-    padding: theme.spacing.lg,
+    paddingBottom: theme.spacing.xl,
+  },
+  contentInner: {
+    alignSelf: 'center',
+    flexGrow: 1,
+    maxWidth: 600,
+    paddingHorizontal: theme.spacing.mdLg,
+    width: '100%',
   },
 });

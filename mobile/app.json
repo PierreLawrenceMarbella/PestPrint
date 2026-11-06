@@ -4,7 +4,10 @@
     "slug": "pestprint-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
-    "platforms": ["android"],
+    "scheme": "pestprint",
+    "platforms": [
+      "android"
+    ],
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "android": {
@@ -17,6 +20,9 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false
-    }
+    },
+    "plugins": [
+      "expo-router"
+    ]
   }
 }
