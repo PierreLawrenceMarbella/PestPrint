@@ -65,8 +65,8 @@
   ));
 }
 
-/* Keyboard focus must never land on an invisible, delayed entrance. */
-:is(.motion-fade-in, .motion-fade-up, .motion-scale):focus-within {
+/* Focus reveals immediately; the shared focus hook latches this across blur. */
+:is(.motion-fade-in, .motion-fade-up, .motion-scale):is(:focus-within, .motion-entered) {
   animation: none;
 }
 
@@ -106,4 +106,18 @@
   .motion-reveal-pending { opacity: 1 !important; transform: none !important; }
   .hero-image, .classification-card:hover img { transform: none !important; }
   .hero-motion-control { display: none; }
+}
+
+/* Keep the slideshow and scan readable on mobile with fewer continuous layers. */
+@media (max-width: 760px), (pointer: coarse) {
+  .hero .hero-slide:is(.active, .previous) .hero-image,
+  .hero .crop-preview,
+  .hero .scan-frame::before { animation: none; }
+  .hero .scan-frame i, .analysis-scan-frame .analysis-corner { filter: none; }
+}
+
+/* Printing must include sections that have not scrolled into view yet. */
+@media print {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  .motion-reveal-pending { opacity: 1 !important; transform: none !important; }
 }

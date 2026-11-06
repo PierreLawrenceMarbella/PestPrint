@@ -279,3 +279,76 @@ and mobile detail screenshots were visually reviewed.
 Browser verification used Microsoft Edge with emulated mobile/touch viewports.
 Analysis responses in navigation and result checks were labeled development
 fixtures; the model and backend were not changed or re-evaluated in this phase.
+
+## Phase 8: final polish and validation
+
+- Retained the shared 180ms interaction, 250ms page, 400ms reveal and 1400ms
+  crossfade tokens and easing curves. The slower hero and request scanner timing
+  remains intentional. No dependencies or alternate animation systems were added.
+- Fixed entrances replaying after focus left an element. `useMotionFocus` in
+  `src/motion.ts`, mounted once by App, exposes focused entrances permanently for
+  that element's lifetime using `motion-entered`. This keeps a page visible when
+  Analyze disables the focused button or a camera dialog takes focus. The one
+  delegated focus listener is removed on unmount. Fresh route elements retain
+  their entrances; existing keyboard and reduced-motion behavior is preserved.
+- Fixed hover selectors overriding upload and result buttons' pressed shadows.
+  Their existing shared hover movement, timing and pressed feedback now compose.
+- The hero's existing suspension state also observes viewport visibility. Its
+  slideshow timer, zoom, scanner, glow and floating frames pause offscreen and
+  resume without catching up. Manual pause, hidden tabs, image decoding and
+  reduced motion retain their behavior. The observer disconnects on unmount;
+  browsers without IntersectionObserver retain the existing visibility policy.
+- At widths up to 760px or with a coarse pointer, keep crossfades and the scan
+  line, while removing continuous hero zoom, frame floating and glow pulsing.
+  Mobile hero and analysis corner brackets omit drop-shadow filters. This leaves
+  one continuous hero animation loop instead of five on desktop. No scrolling
+  listeners, permanent will-change layers or additional animation timers were added.
+- Hidden-tab analysis now pauses both processing spinners, including the one
+  outside the scanner overlay. The real request continues normally.
+- Print styles expose pending scroll sections immediately and disable motion.
+  Screen reader status, image previews, routes, layouts, real model values and
+  the four intended categories are preserved.
+
+The Phase 8 checks in `tests/polish.spec.ts` cover offscreen playback, the mobile
+animation budget, pressed states, print visibility and focus/disabled-control
+replay. Existing scanning checks now cover both hidden-tab spinners. Two older
+checks were corrected: model notices are scoped separately from upload status,
+and the route test freezes entrances from their first frame so a busy machine
+cannot finish the animation before the test inspects it.
+
+Verification:
+
+- `npm run build`: passed TypeScript compilation and the Vite production build.
+- `npm run test:e2e -- --reporter=line`: all 66 unique browser checks passed
+  after a targeted rerun. The final full run passed 65; the new focus regression
+  initially looked up Analyze by its idle label after the button had changed to
+  its busy label. Using the stable button selector fixed the test, and the
+  targeted rerun passed. Production code did not change after the final build.
+- `python -m unittest discover -s tests -v` in the project virtual environment:
+  all six API tests passed, including inference with the existing trained weights.
+- A browser audit of the production build measured five running infinite hero
+  loops on desktop and one on mobile. A real uploaded image returned a Rice
+  Leaffolder prediction from EfficientNet-B0; displayed scores matched the API.
+  Network latency was emulated to inspect and capture the actual pending request.
+  The page stayed fully visible as the Analyze button disabled, and no page
+  errors were reported. Desktop Home, mobile Home, scanning and real result
+  screenshots were visually reviewed.
+- Saved layout and typography baselines matched eight routes at four widths
+  (32 comparisons) and all four result states at five widths (20 comparisons).
+  No horizontal overflow was found. Tests confirm the removed pest remains
+  absent from advertised categories, guide content and its former detail route.
+- `git diff --check -- frontend`: passed.
+
+Changed source files: `src/hero.tsx`, `src/main.tsx`, `src/motion.ts`,
+`src/motion.css`, `src/styles.css`. Changed checks: `tests/polish.spec.ts` (new),
+`tests/scanning.spec.ts`, `tests/classifications.spec.ts`,
+`tests/guide-navigation.spec.ts`. This motion document was also updated.
+
+Limitations: browser checks used Microsoft Edge and mobile/touch emulation;
+physical phones and cameras were not tested. Camera capture used a simulated
+video stream, plus native capture-input and permission-failure checks. All four
+result themes used explicit development fixtures; real inference and Unknown
+handling were checked separately. This phase validates UI behavior, not model
+accuracy or confidence calibration. The model and backend were not modified.
+
+Final Phase 8 status: COMPLETE. Changes remain local; no later phase was started.

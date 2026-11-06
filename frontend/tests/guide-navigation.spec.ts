@@ -73,6 +73,9 @@ test("route entrances never wait for exit animation and upload state survives or
   const errors: string[] = [];
   page.on("pageerror", error => errors.push(error.message));
   await settled(page, "/");
+  // Freeze entrances from their first frame, even on a busy test machine.
+  // Looking up a short animation after several assertions can miss it entirely.
+  await page.addStyleTag({ content: ".motion-page.motion-fade-up { animation-play-state: paused; animation-delay: -70ms; }" });
   const nav = page.getByRole("navigation");
   for (const [label, selector] of [
     ["Analyze", ".analyze-page"], ["Pest Guide", ".guide-page"], ["About", ".about-page"], ["Home", ".home-page"],
@@ -82,10 +85,7 @@ test("route entrances never wait for exit animation and upload state survives or
     await expect(root).toHaveClass(/motion-page/);
     await expect(page.locator("#main-content")).toBeFocused();
     expect(await root.evaluate(el => getComputedStyle(el).animationDuration)).toBe("0.25s");
-    // Freeze the current entrance halfway through; the next navigation still replaces it.
-    await root.evaluate(el => {
-      el.getAnimations().forEach(animation => { animation.pause(); animation.currentTime = 70; });
-    });
+    // The next navigation must replace this paused entrance immediately.
     const opacity = Number(await root.evaluate(el => getComputedStyle(el).opacity));
     expect(opacity).toBeGreaterThan(0);
     expect(opacity).toBeLessThan(1);

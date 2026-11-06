@@ -219,12 +219,14 @@ test("scanner fits mobile and desktop, pauses in hidden tabs and honors live red
   });
   await expect(page.locator(".analysis-sweep")).toHaveCSS("animation-play-state", "paused");
   await expect(page.locator(".analysis-processing .spin")).toHaveCSS("animation-play-state", "paused");
+  await expect(page.locator(".analyze-button .spin")).toHaveCSS("animation-play-state", "paused");
   expect(await wasAborted(page)).toBe(false);
   await page.evaluate(() => {
     Reflect.deleteProperty(document, "hidden");
     document.dispatchEvent(new Event("visibilitychange"));
   });
   await expect(page.locator(".analysis-sweep")).toHaveCSS("animation-play-state", "running");
+  await expect(page.locator(".analyze-button .spin")).toHaveCSS("animation-play-state", "running");
   await page.emulateMedia({ reducedMotion: "reduce" });
   await expect(page.locator(".analysis-sweep")).toHaveCSS("display", "none");
   await expect(page.locator(".analysis-processing .spin")).toHaveCSS("animation-name", "none");

@@ -1,4 +1,4 @@
-import { useEffect, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { asset } from "./data";
@@ -32,12 +32,14 @@ function preloadSlide(index: number): Promise<boolean> {
 }
 
 export function Hero() {
+  const hero = useRef<HTMLElement>(null);
   const [{ active, previous }, setSlide] = useState<{ active: number; previous: number | null }>({ active: 0, previous: null });
   const [ready, setReady] = useState<number[]>([]);
   const [paused, setPaused] = useState(false);
   const [reduced, setReduced] = useState(() => window.matchMedia("(prefers-reduced-motion: reduce)").matches);
   const [visible, setVisible] = useState(() => !document.hidden);
-  const suspended = paused || reduced || !visible;
+  const [inView, setInView] = useState(true);
+  const suspended = paused || reduced || !visible || !inView;
 
   useEffect(() => {
     const preference = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -49,6 +51,13 @@ export function Hero() {
       preference.removeEventListener("change", syncPreference);
       document.removeEventListener("visibilitychange", syncVisibility);
     };
+  }, []);
+
+  useEffect(() => {
+    if (!hero.current || typeof IntersectionObserver === "undefined") return;
+    const observer = new IntersectionObserver(([entry]) => setInView(entry.isIntersecting));
+    observer.observe(hero.current);
+    return () => observer.disconnect();
   }, []);
 
   useEffect(() => {
@@ -90,7 +99,7 @@ export function Hero() {
 
   const stateClass = (index: number) => index === active ? " active" : index === previous ? " previous" : "";
   return (
-    <section className={`hero${suspended ? " motion-paused" : ""}`} style={{ "--hero-slide-interval": `${SLIDE_INTERVAL}ms` } as CSSProperties} aria-label="Rice crop image identification">
+    <section ref={hero} className={`hero${suspended ? " motion-paused" : ""}`} style={{ "--hero-slide-interval": `${SLIDE_INTERVAL}ms` } as CSSProperties} aria-label="Rice crop image identification">
       <div className="hero-slides" aria-hidden="true">
         {slides.map((slide, index) => (
           <div key={slide.image} className={`hero-slide${stateClass(index)}`} data-slide-index={index} data-subject={slide.subject}>

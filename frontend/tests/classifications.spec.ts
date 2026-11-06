@@ -134,7 +134,7 @@ test("a model advertising an unsupported category is rejected before inference",
     return route.abort();
   });
   await page.goto("/analyze");
-  await expect(page.getByRole("status")).toContainText("categories do not match this website");
+  await expect(page.getByRole("status").filter({ hasText: "Analysis service unavailable" })).toContainText("categories do not match this website");
   await expect(page.getByText("Model supported", { exact: true })).toHaveCount(0);
   await expect(page.getByRole("region", { name: "Supported Classes" }).getByRole("link")).toHaveCount(4);
   await page.getByLabel("Choose crop image").setInputFiles(image);
