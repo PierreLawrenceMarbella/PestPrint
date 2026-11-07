@@ -1,102 +1,151 @@
 import { router } from 'expo-router';
-import { StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import Animated, {
+  Easing,
+  FadeIn,
+  FadeInDown,
+  ReduceMotion,
+} from 'react-native-reanimated';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AppButton } from '../components/AppButton';
-import { AppCard } from '../components/AppCard';
 import { BrandHeader } from '../components/BrandHeader';
-import { FeatureCard } from '../components/FeatureCard';
-import { Screen } from '../components/Screen';
-import { SectionTitle } from '../components/SectionTitle';
 import { theme } from '../theme';
 
-const features = [
-  {
-    description: 'Choose or capture a clear photo of your rice crop.',
-    icon: 'camera-outline' as const,
-    title: 'Upload or Capture',
-  },
-  {
-    description: 'Review visible crop damage with image-based analysis.',
-    icon: 'scan-outline' as const,
-    title: 'AI Analysis',
-  },
-  {
-    description: 'See the predicted class and confidence information.',
-    icon: 'document-text-outline' as const,
-    title: 'Get Results',
-  },
-  {
-    description: 'Support clearer rice pest identification in the field.',
-    icon: 'people-outline' as const,
-    title: 'For Agriculture',
-  },
-] as const;
+// Run once on mount. System reduced-motion settings skip these short entrances.
+const logoEntrance = FadeIn.duration(360).reduceMotion(ReduceMotion.System);
+const headingEntrance = FadeInDown.duration(420)
+  .withInitialValues({ transform: [{ translateY: 10 }] })
+  .delay(80)
+  .easing(Easing.out(Easing.cubic))
+  .reduceMotion(ReduceMotion.System);
+const buttonEntrance = FadeInDown.duration(420)
+  .withInitialValues({ transform: [{ translateY: 6 }] })
+  .delay(160)
+  .easing(Easing.out(Easing.cubic))
+  .reduceMotion(ReduceMotion.System);
+const imageEntrance = FadeIn.duration(540)
+  .delay(220)
+  .reduceMotion(ReduceMotion.System);
 
 export function HomeScreen() {
-  return (
-    <Screen testID="home-screen">
-      <BrandHeader />
-      <AppCard style={styles.hero} variant="outlined">
-        <Text style={styles.eyebrow}>AI-POWERED RICE CROP SUPPORT</Text>
-        <Text accessibilityRole="header" style={styles.title}>
-          Identify Rice Pests Through Crop Damage Images
-        </Text>
-        <Text style={styles.description}>
-          Examine visible damage on rice leaves, stems, or grains and identify the most likely supported category.
-        </Text>
-        <AppButton
-          label="Analyze a Rice Crop Image"
-          leadingIcon="camera-outline"
-          onPress={() => router.push('/analyze')}
-          trailingIcon="chevron-forward"
-        />
-      </AppCard>
+  const { width } = useWindowDimensions();
+  const compact = width < 360;
 
-      <SectionTitle style={styles.sectionTitle}>How PESTPRINT helps</SectionTitle>
-      <View style={styles.featureGrid}>
-        {features.map((feature) => (
-          <FeatureCard key={feature.title} {...feature} />
-        ))}
-      </View>
-    </Screen>
+  return (
+    <SafeAreaView edges={['top', 'left', 'right']} style={styles.safeArea}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        contentInsetAdjustmentBehavior="automatic"
+        showsVerticalScrollIndicator={false}
+        testID="home-screen"
+      >
+        <View style={styles.landing}>
+          <Animated.View entering={logoEntrance} style={styles.brand}>
+            <BrandHeader />
+          </Animated.View>
+
+          <Animated.View entering={headingEntrance} style={styles.copy}>
+            <Text
+              accessibilityRole="header"
+              style={[styles.title, compact && styles.compactTitle]}
+            >
+              Identifies Rice Pests Through Crop Damage Images
+            </Text>
+            <Text style={styles.description}>
+              An image-based crop damage analysis app that identifies the most
+              likely rice pest based on visible damage on rice crops.
+            </Text>
+          </Animated.View>
+
+          <Animated.View entering={buttonEntrance} style={styles.action}>
+            <AppButton
+              allowLabelWrap
+              label="Analyze a Rice Crop Image"
+              leadingIcon="camera-outline"
+              onPress={() => router.push('/analyze')}
+              style={styles.button}
+              testID="home-analyze-button"
+              trailingIcon={compact ? undefined : 'chevron-forward'}
+            />
+          </Animated.View>
+
+          <Animated.View entering={imageEntrance} style={styles.riceFrame}>
+            <Animated.Image
+              accessibilityLabel="Golden rice grains growing in a lush green rice field"
+              accessibilityRole="image"
+              resizeMode="cover"
+              resizeMethod="resize"
+              source={require('../../assets/home-rice-field.jpg')}
+              style={styles.riceImage}
+              testID="home-rice-image"
+            />
+          </Animated.View>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  hero: {
-    backgroundColor: theme.colors.surface,
-    borderWidth: 0,
-    paddingHorizontal: theme.spacing.xs,
-    paddingVertical: theme.spacing.lg,
+  safeArea: {
+    backgroundColor: theme.colors.background,
+    flex: 1,
   },
-  eyebrow: {
-    color: theme.colors.forest,
-    fontSize: theme.type.size.caption,
-    fontWeight: theme.type.weight.bold,
-    letterSpacing: 1,
-    marginBottom: theme.spacing.sm,
+  scrollContent: {
+    flexGrow: 1,
+  },
+  landing: {
+    alignSelf: 'center',
+    flexGrow: 1,
+    maxWidth: 600,
+    width: '100%',
+  },
+  brand: {
+    alignItems: 'center',
+    paddingTop: theme.spacing.md,
+    paddingBottom: theme.spacing.md,
+    paddingHorizontal: theme.spacing.mdLg,
+  },
+  copy: {
+    paddingHorizontal: theme.spacing.lg,
   },
   title: {
     color: theme.colors.text,
     fontSize: theme.type.size.display,
-    fontWeight: theme.type.weight.black,
-    letterSpacing: -1,
+    fontWeight: theme.type.weight.bold,
+    letterSpacing: -0.8,
     lineHeight: theme.type.lineHeight.display,
   },
+  compactTitle: {
+    fontSize: theme.type.size.pageTitle,
+    lineHeight: theme.type.lineHeight.pageTitle,
+  },
   description: {
-    color: theme.colors.muted,
+    color: theme.colors.text,
     fontSize: theme.type.size.body,
     lineHeight: theme.type.lineHeight.body,
-    marginBottom: theme.spacing.lg,
-    marginTop: theme.spacing.smMd,
+    marginTop: theme.spacing.md,
   },
-  sectionTitle: {
-    marginBottom: theme.spacing.md,
-    marginTop: theme.spacing.xl,
+  action: {
+    paddingHorizontal: theme.spacing.md,
+    paddingTop: theme.spacing.lg,
+    paddingBottom: theme.spacing.md,
   },
-  featureGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: theme.spacing.smMd,
+  button: {
+    paddingHorizontal: theme.spacing.sm,
+  },
+  riceFrame: {
+    backgroundColor: theme.colors.mint,
+    flexGrow: 1,
+    minHeight: 220,
+    overflow: 'hidden',
+  },
+  riceImage: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    height: '100%',
+    width: '100%',
   },
 });

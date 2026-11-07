@@ -39,3 +39,14 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# Local APK build artifacts
+/builds/
+*.apk
+*.aab
+
+# Verified local inference artifact; included explicitly by root .easignore.
+/assets/models/*.onnx
+
+# Local standalone APK signing identity and passwords (back up privately).
+/.signing/

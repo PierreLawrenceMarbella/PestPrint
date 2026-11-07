@@ -1,4 +1,5 @@
 export const theme = {
+  motion: { press: 100, release: 180, enter: 280 },
   colors: {
     background: '#FFFFFF',
     canvas: '#F7FAF8',
@@ -14,7 +15,12 @@ export const theme = {
     border: '#E2EAE5',
     borderStrong: '#CAD9D0',
     danger: '#C3261D',
+    predictionSurface: '#FFF0F2',
+    predictionBorder: '#F6D9DF',
+    predictionAccent: '#C81D38',
     amber: '#9A6700',
+    amberSurface: '#FFF7E3',
+    amberBorder: '#F0DFB7',
   },
   spacing: {
     xs: 4,

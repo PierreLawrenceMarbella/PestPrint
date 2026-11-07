@@ -1,4 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useState } from 'react';
+import Animated, { Easing, ReduceMotion, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import {
   Pressable,
   StyleSheet,
@@ -10,7 +12,10 @@ import {
 
 import { theme } from '../theme';
 
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+
 type AppButtonProps = Pick<PressableProps, 'disabled' | 'onPress' | 'testID'> & {
+  allowLabelWrap?: boolean;
   label: string;
   leadingIcon?: keyof typeof Ionicons.glyphMap;
   style?: StyleProp<ViewStyle>;
@@ -19,6 +24,7 @@ type AppButtonProps = Pick<PressableProps, 'disabled' | 'onPress' | 'testID'> & 
 };
 
 export function AppButton({
+  allowLabelWrap = true,
   disabled,
   label,
   leadingIcon,
@@ -29,18 +35,35 @@ export function AppButton({
   variant = 'primary',
 }: AppButtonProps) {
   const secondary = variant === 'secondary';
+  const [focused, setFocused] = useState(false);
+  const feedback = useSharedValue(0);
+  const feedbackStyle = useAnimatedStyle(() => ({
+    opacity: disabled ? 0.48 : 1 - feedback.value * 0.07,
+    transform: [{ translateY: feedback.value }],
+  }));
+  const animateFeedback = (value: number) => {
+    feedback.value = withTiming(value, {
+      duration: value ? theme.motion.press : theme.motion.release,
+      easing: Easing.out(Easing.cubic), reduceMotion: ReduceMotion.System,
+    });
+  };
 
   return (
-    <Pressable
+    <AnimatedPressable
       accessibilityRole="button"
+      accessibilityState={{ disabled: !!disabled }}
       disabled={disabled}
+      onBlur={() => setFocused(false)}
+      onFocus={() => setFocused(true)}
       onPress={onPress}
-      style={({ pressed }) => [
+      onPressIn={() => animateFeedback(1)}
+      onPressOut={() => animateFeedback(0)}
+      style={[
         styles.base,
         secondary ? styles.secondary : styles.primary,
-        pressed && styles.pressed,
-        disabled && styles.disabled,
+        focused && styles.focused,
         style,
+        feedbackStyle,
       ]}
       testID={testID}
     >
@@ -51,7 +74,7 @@ export function AppButton({
           size={19}
         />
       ) : null}
-      <Text style={[styles.label, secondary && styles.secondaryLabel]}>{label}</Text>
+      <Text style={[styles.label, secondary && styles.secondaryLabel, allowLabelWrap && styles.wrappedLabel]}>{label}</Text>
       {trailingIcon ? (
         <Ionicons
           color={secondary ? theme.colors.forest : theme.colors.surface}
@@ -59,7 +82,7 @@ export function AppButton({
           size={18}
         />
       ) : null}
-    </Pressable>
+    </AnimatedPressable>
   );
 }
 
@@ -73,6 +96,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     minHeight: 50,
     paddingHorizontal: theme.spacing.mdLg,
+    paddingVertical: theme.spacing.smMd,
   },
   primary: {
     backgroundColor: theme.colors.forest,
@@ -91,12 +115,9 @@ const styles = StyleSheet.create({
   secondaryLabel: {
     color: theme.colors.forest,
   },
-  pressed: {
-    elevation: 0,
-    opacity: 0.86,
-    transform: [{ translateY: 1 }],
+  wrappedLabel: {
+    flexShrink: 1,
+    textAlign: 'center',
   },
-  disabled: {
-    opacity: 0.48,
-  },
+  focused: { outlineColor: theme.colors.forestDark, outlineOffset: 3, outlineWidth: 2 },
 });

@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 import { StyleSheet, type ColorValue } from 'react-native';
+import { useReducedMotion } from 'react-native-reanimated';
 
 import { theme } from '@/src/theme';
 
@@ -27,10 +28,11 @@ function AboutIcon({ color, focused, size }: TabIconProps) {
 }
 
 export default function TabLayout() {
+  const reducedMotion = useReducedMotion();
   return (
     <Tabs
       screenOptions={{
-        animation: 'fade',
+        animation: reducedMotion ? 'none' : 'fade',
         freezeOnBlur: true,
         headerShown: false,
         sceneStyle: { backgroundColor: theme.colors.background },

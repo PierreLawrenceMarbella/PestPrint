@@ -1,18 +1,23 @@
 import { useCallback, useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
-import { router, useFocusEffect } from 'expo-router';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { ActivityIndicator, BackHandler, Image, Pressable, StyleSheet, Text, useWindowDimensions, View, type ImageSourcePropType } from 'react-native';
 import Animated, { FadeIn, FadeInDown, ReduceMotion } from 'react-native-reanimated';
 
 import { AppButton } from '../components/AppButton';
 import { AppCard } from '../components/AppCard';
 import { PageHeader } from '../components/PageHeader';
-import { ProcessingPreview } from '../components/ProcessingPreview';
 import { Screen } from '../components/Screen';
 import { SectionTitle } from '../components/SectionTitle';
 import { supportedCategories } from '../constants/categories';
+import { getResultFixture } from '../development/resultFixtures';
 import { useCropImage } from '../hooks/useCropImage';
+import { useAnalysis } from '../hooks/useAnalysis';
+import { inferenceClient } from '../services/inference';
+import { isClassificationResult } from '../services/pestResult';
 import { theme } from '../theme';
+import { ProcessingScreen } from './ProcessingScreen';
+import { ResultScreen } from './ResultScreen';
 
 const uploadEntrance = FadeIn.duration(320).reduceMotion(ReduceMotion.System);
 const previewEntrance = FadeInDown.duration(320)
@@ -33,22 +38,76 @@ const imageTips = [
 ];
 
 export function AnalyzeScreen() {
+  const { resultFixture } = useLocalSearchParams<{ resultFixture?: string }>();
+  const fixture = __DEV__ ? getResultFixture(resultFixture) : null;
+  const showingFixture = fixture !== null;
   const { width, fontScale } = useWindowDimensions();
   const { image, error, busy, choose, remove, previewFailed } = useCropImage();
   const [loadedUri, setLoadedUri] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);
+  const analysis = useAnalysis(inferenceClient);
+
+  const backToImage = useCallback(() => {
+    analysis.reset();
+    setProcessing(false);
+  }, [analysis.reset]);
+
+  const analyzeAnother = useCallback(() => {
+    analysis.reset();
+    remove();
+    setLoadedUri(null);
+    setProcessing(false);
+  }, [analysis.reset, remove]);
+
+  const closeFixture = useCallback(() => {
+    router.setParams({ resultFixture: undefined });
+  }, []);
 
   useFocusEffect(useCallback(() => {
-    if (!processing) return;
+    if (!processing && !showingFixture) return;
     const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
-      setProcessing(false);
+      if (showingFixture) closeFixture();
+      else backToImage();
       return true;
     });
-    return () => subscription.remove();
-  }, [processing]));
+    return () => {
+      subscription.remove();
+      analysis.cancel();
+    };
+  }, [processing, showingFixture, closeFixture, backToImage, analysis.cancel]));
+
+  if (fixture) {
+    return (
+      <ResultScreen
+        key={resultFixture}
+        image={fixture.image}
+        onAnalyzeAnother={() => { analyzeAnother(); closeFixture(); }}
+        onBack={closeFixture}
+        result={fixture.result}
+      />
+    );
+  }
 
   if (processing && image) {
-    return <ProcessingPreview image={image} onBack={() => setProcessing(false)} />;
+    if (analysis.state.status === 'success' && isClassificationResult(analysis.state.result)) {
+      return (
+        <ResultScreen
+          image={image}
+          onAnalyzeAnother={analyzeAnother}
+          onBack={backToImage}
+          result={analysis.state.result}
+        />
+      );
+    }
+    return (
+      <ProcessingScreen
+        image={image}
+        onBack={backToImage}
+        onCancel={analysis.cancel}
+        onRetry={analysis.isConfigured ? () => { void analysis.start(image); } : undefined}
+        state={analysis.state}
+      />
+    );
   }
 
   return (
@@ -91,6 +150,7 @@ export function AnalyzeScreen() {
             onError={previewFailed}
             onLoad={() => setLoadedUri(image.uri)}
             resizeMode="contain"
+            resizeMethod="resize"
             source={{ uri: image.uri }}
             style={styles.previewImage}
             testID="crop-image-preview"
@@ -155,7 +215,11 @@ export function AnalyzeScreen() {
           disabled={busy || loadedUri !== image.uri}
           label="Analyze Image"
           leadingIcon="scan-outline"
-          onPress={() => { if (!busy && loadedUri === image.uri) setProcessing(true); }}
+          onPress={() => {
+            if (busy || loadedUri !== image.uri) return;
+            setProcessing(true);
+            void analysis.start(image);
+          }}
           style={styles.sourceButton}
           testID="analyze-image-button"
         />
@@ -183,6 +247,7 @@ export function AnalyzeScreen() {
             <Image
               accessibilityLabel={`${category.name} example`}
               resizeMode="cover"
+              resizeMethod="resize"
               source={classImages[category.name]}
               style={styles.classImage}
             />
