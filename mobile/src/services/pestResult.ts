@@ -1,4 +1,5 @@
 import type { ClassificationResult, KnownPestId, KnownPestResult } from '../types/pestResult';
+import { formatPercentage } from '../utils/formatPercentage';
 
 export function isKnownPestId(value: unknown): value is KnownPestId {
   return value === 'rice_leaffolder' || value === 'rice_stem_borer';
@@ -13,7 +14,7 @@ export function getConfidencePercent(value: unknown): number | null {
 
 export function formatConfidencePercent(value: unknown): string {
   const confidence = getConfidencePercent(value);
-  return confidence === null ? 'Confidence unavailable' : `${confidence}%`;
+  return confidence === null ? 'Confidence unavailable' : formatPercentage(confidence, 'percent');
 }
 
 /** Accept only this explicit UI contract, without guessing the backend's shape or units. */

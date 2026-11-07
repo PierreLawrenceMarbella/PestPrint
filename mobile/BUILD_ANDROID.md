@@ -1,12 +1,16 @@
 # Build and install PESTPRINT for Android
 
-## Standalone offline APK (Phase 11D)
+## Standalone offline APK (Phase 11E-C)
 
 The current standalone deliverable is `builds/pestprint-offline.apk` after a
 successful build. It uses the release variant, embedded production Hermes
 JavaScript, the unchanged Phase 11B ONNX model, and a private local signing key.
 It does not use Expo Go, Metro, a laptop, internet, or Flask during normal use.
-See [PHASE_11D_REPORT.md](PHASE_11D_REPORT.md) for actual verification and limits.
+The updated release is **1.0.1**, Android versionCode **2**, with the same
+`com.pestprint.mobile` application ID and signing certificate as version 1.0.0.
+It includes the one-decimal result formatting and branded launch animation.
+See [PHASE_11E_REPORT.md](PHASE_11E_REPORT.md) for current verification and limits;
+[PHASE_11D_REPORT.md](PHASE_11D_REPORT.md) records the original release tests.
 
 ### Install on a phone
 
@@ -17,6 +21,12 @@ See [PHASE_11D_REPORT.md](PHASE_11D_REPORT.md) for actual verification and limit
 3. Open **PESTPRINT** directly from the home screen or app drawer.
 4. Turn on airplane mode. Choose **Analyze**, select a local JPG/PNG or take a
    photo, and tap **Analyze Image**. Allow camera access when requested.
+
+To update an installed **1.0.0 standalone release**, open
+`builds/pestprint-offline-1.0.1.apk` and choose **Update**. Keep the existing app
+installed; this release preserves its signing identity. The generic
+`builds/pestprint-offline.apk` is the same updated APK. The original version is
+archived locally as `builds/pestprint-offline-1.0.0.apk`.
 
 The APK includes ARM64 phone support and x86_64 emulator support, Android 7.0+
 (API 24+). A 32-bit-only phone is not supported by this artifact. Actual phone
@@ -31,7 +41,7 @@ Optional USB installation with Android platform tools:
 
 ```powershell
 adb devices
-adb install -r mobile/builds/pestprint-offline.apk
+adb install -r mobile/builds/pestprint-offline-1.0.1.apk
 ```
 
 ### Rebuild after changes (Windows)

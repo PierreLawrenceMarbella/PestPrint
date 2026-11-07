@@ -1,6 +1,6 @@
 {
   "name": "pestprint-mobile",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "expo-router/entry",
   "dependencies": {
     "@expo/vector-icons": "^15.0.2",
@@ -13,6 +13,7 @@
     "expo-linking": "~57.0.13",
     "expo-navigation-bar": "~57.0.3",
     "expo-router": "~57.0.30",
+    "expo-splash-screen": "~57.0.11",
     "expo-status-bar": "~57.0.1",
     "expo-system-ui": "~57.0.4",
     "onnxruntime-react-native": "1.24.3",
@@ -42,6 +43,8 @@
     "build:dev": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/build-development.ps1",
     "test:api": "node --test scripts/test-api.cjs",
     "test:offline": "node --test scripts/test-offline.cjs",
+    "test:formatting": "node --test scripts/test-formatting.cjs",
+    "test:launch": "node --test scripts/test-launch.cjs",
     "start": "expo start",
     "android": "expo start --android",
     "android:native": "expo run:android",

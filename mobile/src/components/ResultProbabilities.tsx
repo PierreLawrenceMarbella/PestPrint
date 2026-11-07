@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { ModelEvidence } from '../types/pestResult';
 import { theme } from '../theme';
+import { formatPercentage } from '../utils/formatPercentage';
 
 const categories = [
   ['healthy_rice', 'Healthy Rice'], ['rice_leaffolder', 'Rice Leaffolder'],
@@ -24,7 +25,7 @@ export function ResultProbabilities({ probabilities, accent }: { probabilities: 
         <View key={id} style={styles.row}>
           <View style={styles.labels}>
             <Text style={styles.name}>{name}</Text>
-            <Text style={styles.value}>{probabilities[id] * 100}%</Text>
+            <Text style={styles.value}>{formatPercentage(probabilities[id], 'probability')}</Text>
           </View>
           <View style={styles.track}><View style={{ height: 4, backgroundColor: accent, width: `${probabilities[id] * 100}%` }} /></View>
         </View>
