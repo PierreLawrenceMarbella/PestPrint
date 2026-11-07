@@ -1,6 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
 import { StyleSheet, Text, View } from 'react-native';
-import Animated, { FadeIn, ReduceMotion } from 'react-native-reanimated';
 
 import { AppButton } from '../components/AppButton';
 import { AppCard } from '../components/AppCard';
@@ -19,13 +18,11 @@ type ProcessingScreenProps = {
   state: AnalysisState;
 };
 
-const entrance = FadeIn.duration(240).reduceMotion(ReduceMotion.System);
-
 function getCopy(state: AnalysisState) {
   switch (state.status) {
     case 'analyzing':
       return {
-        title: 'Analyzing Image...',
+        title: 'Analyzing Rice Crop Image...',
         subtitle: 'Identifying crop damage patterns and predicting the likely pest.',
         notice: 'Analyzing rice crop image...',
         message: 'The model is running on your phone. Internet is not required. You can cancel at any time.',
@@ -73,7 +70,7 @@ export function ProcessingScreen({ image, onBack, onCancel, onRetry, state }: Pr
       header={<PageHeader onBack={onBack} title="Image Analysis" />}
       testID="processing-screen"
     >
-      <Animated.View entering={entrance} style={styles.body}>
+      <View style={styles.body}>
         <ProcessingVisual active={analyzing} image={image}>
           <View accessibilityLiveRegion="polite" style={styles.heading}>
             <Text accessibilityRole="header" style={styles.title}>{copy.title}</Text>
@@ -110,7 +107,7 @@ export function ProcessingScreen({ image, onBack, onCancel, onRetry, state }: Pr
           testID="processing-back-button"
           variant={analyzing || showRetry ? 'secondary' : 'primary'}
         />
-      </Animated.View>
+      </View>
     </Screen>
   );
 }
