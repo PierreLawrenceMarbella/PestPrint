@@ -2,7 +2,7 @@
   "expo": {
     "name": "PESTPRINT",
     "slug": "pestprint-mobile",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "orientation": "portrait",
     "scheme": "pestprint",
     "platforms": [
@@ -12,7 +12,7 @@
     "userInterfaceStyle": "light",
     "android": {
       "package": "com.pestprint.mobile",
-      "versionCode": 2,
+      "versionCode": 3,
       "adaptiveIcon": {
         "backgroundColor": "#07852F",
         "foregroundImage": "./assets/brand/pestprint-foreground.png",

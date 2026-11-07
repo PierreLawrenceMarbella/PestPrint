@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, type ViewStyle } from 'react-native';
+import Animated, { type AnimatedStyle } from 'react-native-reanimated';
 
 import { getResultName } from '../constants/resultContent';
 import { theme } from '../theme';
@@ -9,17 +10,25 @@ import { AppCard } from './AppCard';
 import { ConfidenceBar } from './ConfidenceBar';
 import { ResultProbabilities } from './ResultProbabilities';
 
-export function ResultPredictionCard({ result }: { result: ClassificationResult }) {
+export function ResultPredictionCard({ result, motion }: {
+  result: ClassificationResult;
+  motion?: { icon: AnimatedStyle<ViewStyle>; highlight: AnimatedStyle<ViewStyle> };
+}) {
   const palette = resultPalette[result.kind];
   const fixture = result.source === 'development-fixture';
   const unknownScore = result.kind === 'unknown' ? result.score : null;
   return (
     <AppCard style={[styles.card, { backgroundColor: palette.surface, borderColor: palette.border }]}>
+      {result.kind === 'known-pest' && motion ? (
+        <Animated.View pointerEvents="none" importantForAccessibility="no-hide-descendants"
+          style={[StyleSheet.absoluteFill, styles.highlight, { backgroundColor: palette.accent }, motion.highlight]}
+          testID="result-pest-highlight" />
+      ) : null}
       <View style={styles.heading}>
         {result.kind !== 'known-pest' ? (
-          <View style={[styles.icon, { backgroundColor: palette.border }]}>
+          <Animated.View style={[styles.icon, { backgroundColor: palette.border }, motion?.icon]} testID="result-classification-icon">
             <Ionicons accessible={false} color={palette.accent} name={result.kind === 'healthy' ? 'leaf-outline' : 'help'} size={28} />
-          </View>
+          </Animated.View>
         ) : null}
         <View style={styles.title}>
           <Text style={[styles.eyebrow, { color: palette.accent }]}>
@@ -47,6 +56,7 @@ export function ResultPredictionCard({ result }: { result: ClassificationResult 
 
 const styles = StyleSheet.create({
   card: { marginBottom: theme.spacing.lg, padding: theme.spacing.md },
+  highlight: { borderRadius: theme.radius.card },
   heading: { alignItems: 'flex-start', flexDirection: 'row', gap: theme.spacing.smMd },
   icon: { alignItems: 'center', borderRadius: theme.radius.pill, height: 44, justifyContent: 'center', marginTop: theme.spacing.xs, width: 44 },
   title: { flex: 1 },

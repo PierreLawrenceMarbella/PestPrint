@@ -1,4 +1,5 @@
-import { Modal, StyleSheet, Text } from 'react-native';
+import { useEffect, useState } from 'react';
+import { AccessibilityInfo, Modal, StyleSheet, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { knownPests } from '../constants/knownPests';
@@ -10,11 +11,24 @@ import { PageHeader } from './PageHeader';
 import { ResultCharacteristics } from './ResultCharacteristics';
 import { Screen } from './Screen';
 
-type ResultEducationModalProps = { result: ClassificationResult; visible: boolean; onClose: () => void };
+type ResultEducationModalProps = { result: ClassificationResult; visible: boolean; onClose: () => void; reduceMotion?: boolean };
 
-export function ResultEducationModal({ result, visible, onClose }: ResultEducationModalProps) {
+export function ResultEducationModal({ result, visible, onClose, reduceMotion = false }: ResultEducationModalProps) {
+  const [reduced, setReduced] = useState(reduceMotion);
+  useEffect(() => {
+    let mounted = true;
+    let changed = false;
+    const preference = AccessibilityInfo.addEventListener('reduceMotionChanged', (value) => {
+      changed = true;
+      setReduced(value);
+    });
+    void AccessibilityInfo.isReduceMotionEnabled().then((value) => {
+      if (mounted && !changed) setReduced(value);
+    }).catch(() => { if (mounted && !changed) setReduced(true); });
+    return () => { mounted = false; preference.remove(); };
+  }, []);
   return (
-    <Modal animationType="fade" onRequestClose={onClose} visible={visible}>
+    <Modal animationType={reduced ? 'none' : 'fade'} onRequestClose={onClose} visible={visible}>
       <SafeAreaView edges={['bottom']} style={styles.container}>
         <Screen
           contentStyle={styles.content}

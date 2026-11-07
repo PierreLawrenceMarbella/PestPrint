@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useState } from 'react';
-import Animated, { Easing, ReduceMotion, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import { useEffect, useState } from 'react';
+import Animated, { cancelAnimation, Easing, ReduceMotion, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import {
   Pressable,
   StyleSheet,
@@ -18,6 +18,7 @@ type AppButtonProps = Pick<PressableProps, 'disabled' | 'onPress' | 'testID'> & 
   allowLabelWrap?: boolean;
   label: string;
   leadingIcon?: keyof typeof Ionicons.glyphMap;
+  resultFeedback?: boolean;
   style?: StyleProp<ViewStyle>;
   trailingIcon?: keyof typeof Ionicons.glyphMap;
   variant?: 'primary' | 'secondary';
@@ -29,6 +30,7 @@ export function AppButton({
   label,
   leadingIcon,
   onPress,
+  resultFeedback = false,
   style,
   testID,
   trailingIcon,
@@ -38,9 +40,15 @@ export function AppButton({
   const [focused, setFocused] = useState(false);
   const feedback = useSharedValue(0);
   const feedbackStyle = useAnimatedStyle(() => ({
-    opacity: disabled ? 0.48 : 1 - feedback.value * 0.07,
-    transform: [{ translateY: feedback.value }],
+    opacity: disabled ? 0.48 : 1 - feedback.value * (resultFeedback ? 0.05 : 0.07),
+    transform: [{ translateY: feedback.value * (resultFeedback ? 0.75 : 1) }],
   }));
+  const iconStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${resultFeedback ? feedback.value * 8 : 0}deg` }],
+  }));
+  useEffect(() => {
+    if (resultFeedback) return () => cancelAnimation(feedback);
+  }, [feedback, resultFeedback]);
   const animateFeedback = (value: number) => {
     feedback.value = withTiming(value, {
       duration: value ? theme.motion.press : theme.motion.release,
@@ -53,7 +61,10 @@ export function AppButton({
       accessibilityRole="button"
       accessibilityState={{ disabled: !!disabled }}
       disabled={disabled}
-      onBlur={() => setFocused(false)}
+      onBlur={() => {
+        setFocused(false);
+        if (resultFeedback) { cancelAnimation(feedback); feedback.value = 0; }
+      }}
       onFocus={() => setFocused(true)}
       onPress={onPress}
       onPressIn={() => animateFeedback(1)}
@@ -68,6 +79,9 @@ export function AppButton({
       testID={testID}
     >
       {leadingIcon ? (
+        resultFeedback ? <Animated.View pointerEvents="none" style={iconStyle} testID={`${testID}-icon-feedback`}>
+          <Ionicons color={secondary ? theme.colors.forest : theme.colors.surface} name={leadingIcon} size={19} />
+        </Animated.View> :
         <Ionicons
           color={secondary ? theme.colors.forest : theme.colors.surface}
           name={leadingIcon}

@@ -1,5 +1,4 @@
 import { useEffect, type ReactNode } from 'react';
-import { Ionicons } from '@expo/vector-icons';
 import { Image, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import Animated, {
   cancelAnimation,
@@ -23,7 +22,8 @@ type ProcessingVisualProps = {
 
 export function ProcessingVisual({ active, children, image }: ProcessingVisualProps) {
   const { width } = useWindowDimensions();
-  const size = Math.min(220, Math.max(156, width - 120));
+  const frameWidth = Math.min(360, width - theme.spacing.mdLg * 2);
+  const frameHeight = frameWidth * 0.75;
   const animate = useProcessingMotion(active);
   const phase = useSharedValue(0);
 
@@ -40,94 +40,80 @@ export function ProcessingVisual({ active, children, image }: ProcessingVisualPr
     transform: [{ rotate: `${phase.value * 360}deg` }],
   }));
   const scan = useAnimatedStyle(() => ({
-    opacity: animate ? interpolate(phase.value, [0, 0.12, 0.88, 1], [0, 0.6, 0.6, 0]) : 0,
-    transform: [{ translateY: phase.value * 84 }],
+    opacity: animate ? interpolate(phase.value, [0, 0.1, 0.9, 1], [0, 1, 1, 0]) : 0,
+    transform: [{ translateY: phase.value * (frameHeight - 32) }],
   }));
 
   return (
     <>
-      <View
-        accessible
-        accessibilityLabel={active ? 'Analyzing image. Progress is indeterminate.' : 'PESTPRINT rice crop analysis'}
-        accessibilityRole={active ? 'progressbar' : 'image'}
-        accessibilityState={{ busy: active }}
-        style={[styles.indicator, { height: size, width: size, borderRadius: size / 2 }]}
-        testID="processing-indicator"
-      >
-        <Animated.View
-          importantForAccessibility="no-hide-descendants"
-          style={[
-            styles.arc,
-            { borderRadius: size / 2, borderTopColor: active ? theme.colors.forest : theme.colors.forestSoft },
-            !active && styles.inactiveArc,
-            rotation,
-          ]}
+      <View style={[styles.cropFrame, { height: frameHeight, width: frameWidth }, active && styles.activeFrame]}>
+        <Image
+          accessibilityLabel="Selected rice crop image"
+          resizeMode="contain"
+          resizeMethod="resize"
+          source={{ uri: image.uri }}
+          style={styles.cropImage}
+          testID="processing-crop-image"
         />
-        <View importantForAccessibility="no-hide-descendants" style={styles.leafMark}>
-          <Ionicons color={theme.colors.forestDark} name="leaf-outline" size={52} />
-        </View>
+        {active ? (
+          <View pointerEvents="none" importantForAccessibility="no-hide-descendants" style={StyleSheet.absoluteFill}>
+            <Animated.View style={[styles.scanSweep, scan]} testID="processing-scan-sweep">
+              <View style={styles.scanGlow} />
+              <View style={styles.scanLine} />
+            </Animated.View>
+            <View style={[styles.corner, styles.topLeft]} />
+            <View style={[styles.corner, styles.topRight]} />
+            <View style={[styles.corner, styles.bottomLeft]} />
+            <View style={[styles.corner, styles.bottomRight]} />
+          </View>
+        ) : null}
       </View>
+      {active ? (
+        <View
+          accessible
+          accessibilityLabel="Analyzing rice crop image. Progress is indeterminate."
+          accessibilityRole="progressbar"
+          accessibilityState={{ busy: true }}
+          style={styles.indicator}
+          testID="processing-indicator"
+        >
+          <Animated.View importantForAccessibility="no-hide-descendants" style={[styles.arc, rotation]} />
+          <Text style={styles.indicatorLabel}>On-device analysis</Text>
+        </View>
+      ) : null}
       {children}
-      <View style={styles.cropCard}>
-        <View style={styles.cropFrame}>
-          <Image
-            accessibilityLabel="Selected rice crop image"
-            resizeMode="contain"
-            resizeMethod="resize"
-            source={{ uri: image.uri }}
-            style={styles.cropImage}
-          />
-          <Animated.View pointerEvents="none" style={[styles.scanLine, scan]} />
-          <View pointerEvents="none" style={styles.topCorner} />
-          <View pointerEvents="none" style={styles.bottomCorner} />
-        </View>
-        <View style={styles.cropCopy}>
-          <Text style={styles.cropTitle}>Selected crop image</Text>
-          <Text numberOfLines={2} style={styles.fileName}>{image.fileName}</Text>
-          <Text style={styles.cropNote}>{active ? 'Analysis request in progress' : 'Image ready for review'}</Text>
-        </View>
-      </View>
+      <Text numberOfLines={1} style={styles.fileName}>{image.fileName}</Text>
     </>
   );
 }
 
 const styles = StyleSheet.create({
   indicator: {
-    alignItems: 'center', alignSelf: 'center', borderColor: theme.colors.mint,
-    borderWidth: 11, justifyContent: 'center', marginBottom: theme.spacing.xl,
+    alignItems: 'center', alignSelf: 'center', flexDirection: 'row', gap: theme.spacing.sm,
+    marginBottom: theme.spacing.md,
   },
   arc: {
-    position: 'absolute', top: -11, bottom: -11, left: -11, right: -11,
-    borderWidth: 11, borderColor: theme.colors.forest, borderLeftColor: 'transparent',
+    borderRadius: 10, borderWidth: 2, borderColor: theme.colors.forestSoft,
+    borderTopColor: theme.colors.forest, borderRightColor: theme.colors.forest, height: 20, width: 20,
   },
-  inactiveArc: { borderColor: theme.colors.forestSoft, borderLeftColor: theme.colors.forestSoft },
-  leafMark: {
-    alignItems: 'center', backgroundColor: theme.colors.surface, borderColor: theme.colors.forestDark,
-    borderRadius: 44, borderWidth: 2, height: 88, justifyContent: 'center', width: 88,
-  },
-  cropCard: {
-    alignItems: 'center', backgroundColor: theme.colors.canvas, borderColor: theme.colors.border,
-    borderRadius: theme.radius.card, borderWidth: 1, flexDirection: 'row', gap: theme.spacing.md,
-    marginBottom: theme.spacing.lg, padding: theme.spacing.smMd, width: '100%',
-  },
+  indicatorLabel: { color: theme.colors.forestDark, fontSize: theme.type.size.label, fontWeight: theme.type.weight.medium },
   cropFrame: {
-    backgroundColor: theme.colors.mint, borderRadius: theme.radius.control, height: 88,
-    overflow: 'hidden', width: 88,
+    alignSelf: 'center', backgroundColor: theme.colors.canvas, borderColor: theme.colors.borderStrong,
+    borderRadius: theme.radius.card, borderWidth: 1, overflow: 'hidden', marginBottom: theme.spacing.lg,
   },
+  activeFrame: { borderColor: theme.colors.forestSoft },
   cropImage: { height: '100%', width: '100%' },
-  cropCopy: { flex: 1 },
-  cropTitle: { color: theme.colors.text, fontSize: theme.type.size.label, fontWeight: theme.type.weight.bold },
-  fileName: { color: theme.colors.muted, fontSize: theme.type.size.caption, marginTop: theme.spacing.xs },
-  cropNote: { color: theme.colors.forestDark, fontSize: theme.type.size.caption, marginTop: theme.spacing.sm },
+  fileName: { color: theme.colors.muted, fontSize: theme.type.size.caption, marginBottom: theme.spacing.lg, textAlign: 'center' },
+  scanSweep: { height: 20, left: 12, position: 'absolute', right: 12, top: 6 },
+  scanGlow: { backgroundColor: 'rgba(109, 211, 140, 0.12)', height: 18 },
   scanLine: {
-    backgroundColor: theme.colors.forest, height: 3, left: 0, position: 'absolute', right: 0, top: 1,
+    backgroundColor: theme.colors.forest, height: 2,
   },
-  topCorner: {
-    borderColor: theme.colors.surface, borderLeftWidth: 2, borderTopWidth: 2,
-    height: 13, left: 5, position: 'absolute', top: 5, width: 13,
+  corner: {
+    borderColor: theme.colors.forest, height: 24, position: 'absolute', width: 24,
   },
-  bottomCorner: {
-    borderBottomWidth: 2, borderColor: theme.colors.surface, borderRightWidth: 2,
-    bottom: 5, height: 13, position: 'absolute', right: 5, width: 13,
-  },
+  topLeft: { borderLeftWidth: 2, borderTopWidth: 2, left: 12, top: 12, borderTopLeftRadius: 5 },
+  topRight: { borderRightWidth: 2, borderTopWidth: 2, right: 12, top: 12, borderTopRightRadius: 5 },
+  bottomLeft: { borderLeftWidth: 2, borderBottomWidth: 2, left: 12, bottom: 12, borderBottomLeftRadius: 5 },
+  bottomRight: { borderRightWidth: 2, borderBottomWidth: 2, right: 12, bottom: 12, borderBottomRightRadius: 5 },
 });
